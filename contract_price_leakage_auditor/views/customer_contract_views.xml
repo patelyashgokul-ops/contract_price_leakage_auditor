@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_customer_contract_list" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.list</field>
+        <field name="model">cpla.customer.contract</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="valid_from"/>
+                <field name="valid_to"/>
+                <field name="currency_id"/>
+                <field name="owner_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'ready_for_review'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_form" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.form</field>
+        <field name="model">cpla.customer.contract</field>
+        <field name="arch" type="xml">
+            <form string="Customer Pricing Contract" duplicate="false" delete="false">
+                <header>
+                    <button name="action_submit_for_review" type="object" string="Submit for Review"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve_initial" type="object" string="Approve Initial Version"
+                            class="btn-primary"
+                            invisible="state != 'ready_for_review' or audit_authoritative"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state == 'cancelled'"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'ready_for_review'"
+                            groups="contract_price_leakage_auditor.group_contract_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,ready_for_review,cancelled"
+                           readonly="1"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        This header is not an approved price. Approved prices are stored on contract versions. Ready for Review is not approval. Invoice audit is not available.
+                    </div>
+                    <div class="oe_title">
+                        <label for="reference"/>
+                        <h1><field name="reference" readonly="1"/></h1>
+                        <label for="name"/>
+                        <h2><field name="name" placeholder="Agreement title" readonly="state != 'draft'"/></h2>
+                    </div>
+                    <group>
+                        <group string="General Information">
+                            <field name="partner_id" readonly="state != 'draft'"
+                                   domain="['|', ('company_id', '=', False), ('company_id', 'parent_of', company_id)]"/>
+                            <field name="commercial_partner_id"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                            <field name="owner_id" readonly="state != 'draft'"
+                                   domain="[('company_ids', 'in', company_id), ('share', '=', False)]"/>
+                            <field name="external_reference" readonly="state != 'draft'"/>
+                            <field name="currency_id" readonly="state != 'draft'"/>
+                            <field name="company_currency_id"/>
+                        </group>
+                        <group string="Agreement Period">
+                            <field name="valid_from" readonly="state != 'draft'"/>
+                            <field name="valid_to" readonly="state != 'draft'"/>
+                            <field name="policy_id" readonly="state != 'draft'"
+                                   domain="[('company_id', '=', company_id), ('is_current', '=', True)]"/>
+                            <field name="policy_version"/>
+                            <field name="audit_authoritative"/>
+                        </group>
+                    </group>
+                    <group string="Proposed Covered Entities">
+                        <field name="covered_partner_ids" widget="many2many_tags" readonly="state != 'draft'"
+                               domain="['|', ('company_id', '=', False), ('company_id', 'parent_of', company_id)]"/>
+                    </group>
+                    <notebook>
+                        <page string="Versions" name="versions">
+                            <field name="version_ids" readonly="1">
+                                <list>
+                                    <field name="version_number"/>
+                                    <field name="reference"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="effective_from"/>
+                                    <field name="effective_status"/>
+                                    <field name="approved_by_id"/>
+                                    <field name="approved_at"/>
+                                    <field name="supersedes_version_id"/>
+                                    <field name="change_summary"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Negotiated Product Prices" name="lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"
+                                           domain="['|', ('company_id', '=', False), ('company_id', 'parent_of', company_id)]"/>
+                                    <field name="product_tmpl_id" optional="hide"/>
+                                    <field name="name"/>
+                                    <field name="price_unit"/>
+                                    <field name="uom_id"/>
+                                    <field name="currency_id" optional="show"/>
+                                    <field name="external_line_reference" optional="hide"/>
+                                    <field name="notes" optional="hide"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Supporting Evidence" name="evidence">
+                            <field name="evidence_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="document_type"/>
+                                    <field name="source_reference"/>
+                                    <field name="datas" filename="name"/>
+                                    <field name="description"/>
+                                    <field name="create_uid" optional="show"/>
+                                    <field name="create_date" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Review and Notes" name="notes">
+                            <group>
+                                <field name="overlap_warning" readonly="1"/>
+                                <field name="review_blocker_text" readonly="1"/>
+                                <field name="description" readonly="state != 'draft'"/>
+                                <field name="cancel_reason" readonly="state == 'cancelled'"/>
+                                <field name="reset_reason"
+                                       readonly="state != 'ready_for_review'"
+                                       groups="contract_price_leakage_auditor.group_contract_manager"/>
+                            </group>
+                            <group string="Change trace">
+                                <field name="create_uid"/>
+                                <field name="create_date"/>
+                                <field name="write_uid"/>
+                                <field name="write_date"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_search" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.search</field>
+        <field name="model">cpla.customer.contract</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="owner_id"/>
+                <field name="external_reference"/>
+                <filter name="filter_my" string="My Contracts" domain="[('owner_id', '=', uid)]"/>
+                <filter name="filter_draft" string="Draft Contracts" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_ready" string="Ready for Review" domain="[('state', '=', 'ready_for_review')]"/>
+                <filter name="filter_cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="filter_valid_from" string="Valid From" date="valid_from"/>
+                <filter name="filter_valid_to" string="Valid To" date="valid_to"/>
+                <group>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_owner" string="Contract Owner" context="{'group_by': 'owner_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cpla_customer_contract" model="ir.actions.act_window">
+        <field name="name">Customer Pricing Contracts</field>
+        <field name="res_model">cpla.customer.contract</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_my': 1}</field>
+        <field name="help" type="html">
+            <p>Record a draft customer pricing agreement. Ready for Review is not an approved price, and this screen does not audit invoices.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_cpla_contracts"
+              name="Contracts"
+              parent="menu_cpla_root"
+              sequence="20"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_customer_contracts"
+              name="Customer Pricing Contracts"
+              parent="menu_cpla_contracts"
+              action="action_cpla_customer_contract"
+              sequence="10"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

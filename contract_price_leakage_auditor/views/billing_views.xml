@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_recovery_billing_policy_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.billing.policy.list</field>
+        <field name="model">cpla.recovery.billing.policy</field>
+        <field name="arch" type="xml">
+            <list create="true" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="billing_method"/>
+                <field name="tax_treatment"/>
+                <field name="state"/>
+                <field name="is_current"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_cpla_recovery_billing_policy_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.billing.policy.form</field>
+        <field name="model">cpla.recovery.billing.policy</field>
+        <field name="arch" type="xml">
+            <form create="true" delete="false">
+                <header>
+                    <button name="action_approve_policy" type="object" string="Approve billing policy"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        No journal, account, or tax is seeded. An unresolved tax treatment blocks billing.
+                        Approving this policy does not create an invoice.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="billing_method"/>
+                            <field name="tax_treatment"/>
+                            <field name="journal_id"/>
+                            <field name="revenue_account_id"/>
+                        </group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="payment_term_id"/>
+                            <field name="fiscal_position_id"/>
+                            <field name="four_eyes_posting"/>
+                            <field name="bank_verification_required"/>
+                            <field name="dispute_blocks_billing"/>
+                            <field name="is_current"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="tax_ids" widget="many2many_tags"/>
+                        <field name="change_reason"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_cpla_recovery_billing_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.billing.list</field>
+        <field name="model">cpla.recovery.billing</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="company_id"/>
+                <field name="billing_method"/>
+                <field name="state"/>
+                <field name="requested_principal_exact"/>
+                <field name="posted_principal_exact"/>
+                <field name="currency_id"/>
+                <field name="due_date"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_cpla_recovery_billing_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.billing.form</field>
+        <field name="model">cpla.recovery.billing</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_create_draft" type="object" string="Create draft document"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('handoff_verified', 'accounting_review')"/>
+                    <button name="action_mark_ready" type="object" string="Mark ready to post"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'draft_document_created'"/>
+                    <button name="action_post" type="object" string="Post recovery document"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('draft_document_created', 'ready_to_post')"/>
+                    <button name="action_refresh_collections" type="object" string="Refresh collection evidence"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('posted', 'partially_reversed', 'fully_reversed')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="handoff_verified,draft_document_created,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_request" type="object" class="oe_stat_button" icon="fa-handshake-o"
+                                string="Recovery request"/>
+                        <button name="action_open_origin" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                                string="Original invoice" invisible="not origin_move_id"/>
+                        <button name="action_open_move" type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                                string="Accounting document" invisible="not move_id"/>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        A draft accounting document is not posted recovery. A posted invoice is not collected cash.
+                        A credit note is not incoming cash. An exchange difference is not recovered principal.
+                        This screen does not auto-post.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="request_id"/>
+                            <field name="currency_id"/>
+                            <field name="billing_method"/>
+                            <field name="tax_treatment"/>
+                            <field name="journal_id"/>
+                            <field name="revenue_account_id"/>
+                        </group>
+                        <group>
+                            <field name="requested_principal_exact"/>
+                            <field name="expected_tax_exact"/>
+                            <field name="expected_gross_exact"/>
+                            <field name="posted_principal_exact"/>
+                            <field name="tax_exact"/>
+                            <field name="gross_exact"/>
+                            <field name="due_date"/>
+                            <field name="overdue_days"/>
+                            <field name="verification_state"/>
+                            <field name="exception_code"/>
+                            <field name="link_source"/>
+                            <field name="move_id"/>
+                            <field name="origin_move_id"/>
+                            <field name="policy_reference"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Allocation lines">
+                            <field name="line_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="request_line_id"/>
+                                    <field name="finding_id"/>
+                                    <field name="principal_exact"/>
+                                    <field name="origin_move_id"/>
+                                    <field name="move_line_id"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Accounting links">
+                            <field name="link_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="move_id"/>
+                                    <field name="move_line_id"/>
+                                    <field name="link_source"/>
+                                    <field name="posting_state"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Collection evidence">
+                            <field name="evidence_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="classification"/>
+                                    <field name="verification_state"/>
+                                    <field name="credit_category"/>
+                                    <field name="principal_exact"/>
+                                    <field name="matched_exact"/>
+                                    <field name="is_verified_cash"/>
+                                    <field name="statement_line_id"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Adjustments">
+                            <field name="adjustment_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="adjustment_kind"/>
+                                    <field name="state"/>
+                                    <field name="principal_exact"/>
+                                    <field name="is_cash"/>
+                                    <field name="move_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group>
+                        <field name="blocker"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_cpla_recovery_billing_policy" model="ir.actions.act_window">
+        <field name="name">Recovery Billing Policies</field>
+        <field name="res_model">cpla.recovery.billing.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_billing" model="ir.actions.act_window">
+        <field name="name">Recovery Billing</field>
+        <field name="res_model">cpla.recovery.billing</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_cpla_recovery_billing"
+              name="Recovery Billing"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_billing"
+              sequence="130"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_billing_policy"
+              name="Recovery Billing Policies"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_billing_policy"
+              sequence="140"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <record id="view_cpla_recovery_accounting_link_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.accounting.link.list</field>
+        <field name="model">cpla.recovery.accounting.link</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="billing_id"/>
+                <field name="move_id"/>
+                <field name="move_line_id"/>
+                <field name="link_source"/>
+                <field name="posting_state"/>
+                <field name="counts_current"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_cpla_recovery_collection_evidence_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.collection.evidence.list</field>
+        <field name="model">cpla.recovery.collection.evidence</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="billing_id"/>
+                <field name="classification"/>
+                <field name="verification_state"/>
+                <field name="credit_category"/>
+                <field name="principal_exact"/>
+                <field name="counts_current"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_cpla_recovery_accounting_adjustment_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.accounting.adjustment.list</field>
+        <field name="model">cpla.recovery.accounting.adjustment</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="billing_id"/>
+                <field name="adjustment_kind"/>
+                <field name="state"/>
+                <field name="principal_exact"/>
+                <field name="is_cash"/>
+                <field name="move_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_cpla_recovery_billing_requests" model="ir.actions.act_window">
+        <field name="name">Recovery Billing Requests</field>
+        <field name="res_model">cpla.recovery.billing</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('draft', 'handoff_verified', 'accounting_review', 'document_prepared'))]</field>
+    </record>
+    <record id="action_cpla_recovery_billing_drafts" model="ir.actions.act_window">
+        <field name="name">Draft Recovery Documents</field>
+        <field name="res_model">cpla.recovery.billing</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('draft_document_created', 'ready_to_post'))]</field>
+    </record>
+    <record id="action_cpla_recovery_billing_posted" model="ir.actions.act_window">
+        <field name="name">Posted Recovery Documents</field>
+        <field name="res_model">cpla.recovery.billing</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('posted', 'partially_reversed'))]</field>
+    </record>
+    <record id="action_cpla_recovery_accounting_links" model="ir.actions.act_window">
+        <field name="name">Recovery Accounting Links</field>
+        <field name="res_model">cpla.recovery.accounting.link</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_collections" model="ir.actions.act_window">
+        <field name="name">Recovery Collections</field>
+        <field name="res_model">cpla.recovery.collection.evidence</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_bank_pending" model="ir.actions.act_window">
+        <field name="name">Bank Verification Pending</field>
+        <field name="res_model">cpla.recovery.collection.evidence</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('classification', '=', 'unconfirmed_payment'), ('counts_current', '=', True)]</field>
+    </record>
+    <record id="action_cpla_recovery_credits" model="ir.actions.act_window">
+        <field name="name">Recovery Credits and Adjustments</field>
+        <field name="res_model">cpla.recovery.accounting.adjustment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_overdue" model="ir.actions.act_window">
+        <field name="name">Overdue Recovery</field>
+        <field name="res_model">cpla.recovery.billing</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('posted', 'partially_reversed')), ('due_date', '&lt;', context_today().strftime('%Y-%m-%d'))]</field>
+    </record>
+    <menuitem id="menu_cpla_recovery_billing_requests" name="Recovery Billing Requests" parent="menu_cpla_recovery" action="action_cpla_recovery_billing_requests" sequence="131" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_billing_drafts" name="Draft Recovery Documents" parent="menu_cpla_recovery" action="action_cpla_recovery_billing_drafts" sequence="132" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_billing_posted" name="Posted Recovery Documents" parent="menu_cpla_recovery" action="action_cpla_recovery_billing_posted" sequence="133" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_accounting_links" name="Recovery Accounting Links" parent="menu_cpla_recovery" action="action_cpla_recovery_accounting_links" sequence="134" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_collections" name="Recovery Collections" parent="menu_cpla_recovery" action="action_cpla_recovery_collections" sequence="135" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_bank_pending" name="Bank Verification Pending" parent="menu_cpla_recovery" action="action_cpla_recovery_bank_pending" sequence="136" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_credits" name="Recovery Credits and Adjustments" parent="menu_cpla_recovery" action="action_cpla_recovery_credits" sequence="137" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_overdue" name="Overdue Recovery" parent="menu_cpla_recovery" action="action_cpla_recovery_overdue" sequence="138" groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

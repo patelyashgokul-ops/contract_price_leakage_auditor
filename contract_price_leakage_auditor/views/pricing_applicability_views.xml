@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_pricing_applicability_check_list" model="ir.ui.view">
+        <field name="name">cpla.pricing.applicability.check.list</field>
+        <field name="model">cpla.pricing.applicability.check</field>
+        <field name="arch" type="xml">
+            <list create="true" delete="true">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="pricing_date"/>
+                <field name="status"/>
+                <field name="reason_code"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_pricing_applicability_check_form" model="ir.ui.view">
+        <field name="name">cpla.pricing.applicability.check.form</field>
+        <field name="model">cpla.pricing.applicability.check</field>
+        <field name="arch" type="xml">
+            <form string="Applicability Check">
+                <header>
+                    <button name="action_resolve" type="object" string="Resolve Applicability" class="btn-primary"/>
+                </header>
+                <div class="alert alert-warning" role="alert">
+                    This check reads approved contract evidence. It is not an approved price
+                    and it does not audit invoices.
+                </div>
+                <group>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="partner_id"/>
+                        <field name="product_id"/>
+                        <field name="uom_id"/>
+                        <field name="quantity"/>
+                        <field name="quantity_uom_id"/>
+                        <field name="comparison_uom_id"/>
+                        <field name="qualification_basis"/>
+                        <field name="order_quantity"/>
+                        <field name="invoice_quantity"/>
+                        <field name="delivery_quantity"/>
+                        <field name="billed_quantity"/>
+                        <field name="returned_quantity"/>
+                        <field name="document_type"/>
+                    </group>
+                    <group>
+                        <field name="pricing_date"/>
+                        <field name="basis"/>
+                        <field name="order_confirmation_date"/>
+                        <field name="order_confirmed"/>
+                        <field name="quotation_date"/>
+                        <field name="invoice_date"/>
+                        <field name="delivery_date"/>
+                        <field name="delivery_date_2"/>
+                        <field name="knowledge_cutoff"/>
+                        <field name="customer_group_ref"/>
+                        <field name="template_fallback_requested"/>
+                    </group>
+                </group>
+                <group string="Result" invisible="not status">
+                    <field name="status"/>
+                    <field name="reason_code"/>
+                    <field name="customer_scope"/>
+                    <field name="product_specificity"/>
+                    <field name="grandfathering_applied"/>
+                    <field name="tier_status"/>
+                    <field name="quantity_status"/>
+                    <field name="qualified_quantity_exact" invisible="status != 'MATCHED_AUTHORITATIVE'"/>
+                    <field name="contract_unit_price" invisible="tier_status != 'tier_matched'"/>
+                    <field name="normalized_unit_price" invisible="tier_status != 'tier_matched'"/>
+                    <field name="normalized_uom_id" invisible="tier_status != 'tier_matched'"/>
+                    <field name="contract_id" invisible="status != 'MATCHED_AUTHORITATIVE'"/>
+                    <field name="version_id" invisible="status != 'MATCHED_AUTHORITATIVE'"/>
+                    <field name="version_line_id" invisible="status != 'MATCHED_AUTHORITATIVE'"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="unit_price" invisible="status != 'MATCHED_AUTHORITATIVE'"/>
+                    <field name="financial_status"/>
+                    <field name="financial_reason"/>
+                    <field name="fx_date_used" invisible="financial_status not in ('NORMALIZED', 'SAME_CURRENCY_NO_CONVERSION')"/>
+                    <field name="fx_rate_exact" invisible="financial_status not in ('NORMALIZED', 'SAME_CURRENCY_NO_CONVERSION')"/>
+                    <field name="fx_rate_direction" invisible="financial_status not in ('NORMALIZED', 'SAME_CURRENCY_NO_CONVERSION')"/>
+                    <field name="tax_basis_result" invisible="financial_status not in ('NORMALIZED', 'SAME_CURRENCY_NO_CONVERSION')"/>
+                    <field name="rounding_stage_result"/>
+                    <field name="comparable_currency_id" invisible="financial_status not in ('NORMALIZED', 'SAME_CURRENCY_NO_CONVERSION')"/>
+                    <field name="comparable_unit_price_exact" invisible="financial_status not in ('NORMALIZED', 'SAME_CURRENCY_NO_CONVERSION')"/>
+                    <field name="financial_explanation"/>
+                    <field name="explanation"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cpla_pricing_applicability_check" model="ir.actions.act_window">
+        <field name="name">Applicability Check</field>
+        <field name="res_model">cpla.pricing.applicability.check</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_cpla_pricing_applicability"
+              name="Applicability Check"
+              parent="menu_cpla_contracts"
+              action="action_cpla_pricing_applicability_check"
+              sequence="40"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

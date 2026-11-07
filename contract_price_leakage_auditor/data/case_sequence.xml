@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_cpla_leakage_case" model="ir.sequence">
+        <field name="name">Leakage Investigation Case</field>
+        <field name="code">cpla.leakage.case</field>
+        <field name="prefix">CPL-CASE/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

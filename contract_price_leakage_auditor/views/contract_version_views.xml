@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_customer_contract_version_list" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.list</field>
+        <field name="model">cpla.customer.contract.version</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="contract_id"/>
+                <field name="reference"/>
+                <field name="version_number"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="partner_id"/>
+                <field name="effective_from"/>
+                <field name="state" widget="badge"/>
+                <field name="effective_status"/>
+                <field name="approved_by_id"/>
+                <field name="external_amendment_reference" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_version_form" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.form</field>
+        <field name="model">cpla.customer.contract.version</field>
+        <field name="arch" type="xml">
+            <form string="Contract Version" duplicate="false" delete="false">
+                <header>
+                    <button name="action_submit_for_review" type="object" string="Submit for Review"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" invisible="state != 'ready_for_review'"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'ready_for_review'"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel Draft"
+                            invisible="state not in ('draft', 'ready_for_review')"/>
+                    <button name="action_create_amendment" type="object" string="Create Amendment"
+                            invisible="state != 'approved'"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"/>
+                    <button name="action_open_compare" type="object" string="Compare Versions"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_view_history" type="object" string="View History"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,ready_for_review,approved,rejected,cancelled"
+                           readonly="1"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="state != 'approved'">
+                        This is an approved price snapshot. It is not an invoice audit and it does not change posted invoices.
+                    </div>
+                    <div class="oe_title">
+                        <label for="reference"/>
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="contract_id" readonly="1"/>
+                            <field name="version_number" readonly="1"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="partner_name"/>
+                            <field name="currency_id" readonly="state != 'draft'"/>
+                            <field name="company_currency_id"/>
+                            <field name="policy_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Effective Dates">
+                            <field name="effective_from" readonly="state != 'draft'"/>
+                            <field name="valid_from" readonly="state != 'draft'"/>
+                            <field name="valid_to" readonly="state != 'draft'"/>
+                            <field name="authority_to"/>
+                            <field name="effective_status"/>
+                            <field name="historically_effective"/>
+                            <field name="reassessment_required"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pricing Snapshot" name="lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="product_name"/>
+                                    <field name="name"/>
+                                    <field name="price_unit"/>
+                                    <field name="uom_id"/>
+                                    <field name="currency_id"/>
+                                    <field name="company_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Quantity Tiers" name="quantity_tiers">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="tier_method"/>
+                                    <field name="quantity_basis"/>
+                                    <field name="return_policy"/>
+                                    <field name="price_unit"/>
+                                    <field name="uom_id"/>
+                                </list>
+                                <form>
+                                    <group>
+                                        <field name="product_id"/>
+                                        <field name="tier_method"/>
+                                        <field name="quantity_basis"/>
+                                        <field name="return_policy"/>
+                                        <field name="price_unit"/>
+                                        <field name="uom_id"/>
+                                        <field name="currency_id"/>
+                                        <field name="company_id" invisible="1"/>
+                                    </group>
+                                    <field name="tier_ids">
+                                        <list editable="bottom">
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="min_quantity"/>
+                                            <field name="has_maximum"/>
+                                            <field name="max_quantity"/>
+                                            <field name="quantity_uom_id"/>
+                                            <field name="price_unit"/>
+                                            <field name="pricing_uom_id"/>
+                                            <field name="quantity_uom_factor" readonly="1"/>
+                                            <field name="pricing_uom_factor" readonly="1"/>
+                                            <field name="product_uom_factor" readonly="1"/>
+                                            <field name="factor_captured_at" readonly="1"/>
+                                            <field name="currency_id" column_invisible="1"/>
+                                            <field name="company_id" column_invisible="1"/>
+                                        </list>
+                                    </field>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Financial Clause" name="financial_clause">
+                            <div class="alert alert-warning" role="alert">
+                                This clause prepares a comparable unit price. It does not audit invoices,
+                                apply a discount, or create a leakage finding. A missing rate stays in review.
+                            </div>
+                            <group>
+                                <group string="Currency and FX">
+                                    <field name="fx_policy" readonly="state != 'draft'"/>
+                                    <field name="fx_date_source" readonly="state != 'draft'"/>
+                                    <field name="fx_explicit_date" readonly="state != 'draft'"/>
+                                    <field name="fx_source_currency_id" readonly="state != 'draft'"/>
+                                    <field name="fx_target_currency_id" readonly="state != 'draft'"/>
+                                    <field name="fx_multiplier_exact" readonly="state != 'draft'"/>
+                                    <field name="comparison_currency_policy" readonly="state != 'draft'"/>
+                                    <field name="comparison_currency_id" readonly="state != 'draft'"/>
+                                </group>
+                                <group string="Tax, Rounding, and Frozen Evidence">
+                                    <field name="tax_basis" readonly="state != 'draft'"/>
+                                    <field name="tax_structure" readonly="state != 'draft'"/>
+                                    <field name="tax_percent_exact" readonly="state != 'draft'"/>
+                                    <field name="rounding_stage" readonly="state != 'draft'"/>
+                                    <field name="fx_policy_date"/>
+                                    <field name="fx_rate_date_used"/>
+                                    <field name="fx_rate_id"/>
+                                    <field name="fx_target_rate_id"/>
+                                    <field name="fx_company_per_source_exact"/>
+                                    <field name="fx_company_per_target_exact"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Amendment Changes" name="changes">
+                            <group>
+                                <field name="source_version_id" readonly="1"/>
+                                <field name="amendment_reason" readonly="state != 'draft'"/>
+                                <field name="external_amendment_reference" readonly="state != 'draft'"/>
+                                <field name="change_summary"/>
+                                <field name="description" readonly="state != 'draft'"/>
+                            </group>
+                        </page>
+                        <page string="Approval Details" name="approval">
+                            <group>
+                                <field name="requested_by_id"/>
+                                <field name="submitted_by_id"/>
+                                <field name="approved_by_id"/>
+                                <field name="approved_at"/>
+                                <field name="approval_reference"/>
+                                <field name="approval_note" readonly="state != 'ready_for_review'"/>
+                                <field name="rejection_reason" readonly="state != 'ready_for_review'"/>
+                                <field name="rejected_by_id"/>
+                                <field name="amount_threshold_policy"/>
+                                <field name="retroactivity_policy"/>
+                                <field name="policy_version_snapshot"/>
+                                <field name="pricing_date_policy_snapshot"/>
+                                <field name="precedence_policy_snapshot"/>
+                                <field name="coverage_policy_snapshot"/>
+                                <field name="snapshot_sha256"/>
+                            </group>
+                        </page>
+                        <page string="Supporting Evidence" name="evidence">
+                            <field name="evidence_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="document_type"/>
+                                    <field name="source_reference"/>
+                                    <field name="source_evidence_id"/>
+                                    <field name="origin_evidence_id"/>
+                                    <field name="datas" filename="name"/>
+                                    <field name="content_sha256"/>
+                                    <field name="description"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Supersession History" name="supersession">
+                            <group>
+                                <field name="supersedes_version_id" readonly="1"/>
+                                <field name="superseded_by_ids" readonly="1">
+                                    <list>
+                                        <field name="reference"/>
+                                        <field name="state"/>
+                                        <field name="effective_from"/>
+                                        <field name="approved_at"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Internal Audit History" name="history">
+                            <field name="event_ids" readonly="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="occurred_at"/>
+                                    <field name="event_type"/>
+                                    <field name="actor_id"/>
+                                    <field name="reason"/>
+                                    <field name="approval_reference"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_version_search" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.search</field>
+        <field name="model">cpla.customer.contract.version</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="contract_id"/>
+                <field name="partner_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="approved_by_id"/>
+                <field name="external_amendment_reference"/>
+                <field name="approval_reference"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_ready" string="Ready for Review" domain="[('state', '=', 'ready_for_review')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_rejected" string="Rejected" domain="[('state', '=', 'rejected')]"/>
+                <filter name="filter_future" string="Future-Dated Versions"
+                        domain="[('state', '=', 'approved'), ('effective_from', '&gt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_historical" string="Historical Versions"
+                        domain="[('effective_status', 'in', ('superseded', 'expired'))]"/>
+                <separator/>
+                <filter name="filter_effective_from" string="Effective Date" date="effective_from"/>
+                <group>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_state" string="Approval Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_approver" string="Approver" context="{'group_by': 'approved_by_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_version_event_list" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.event.list</field>
+        <field name="model">cpla.customer.contract.version.event</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false" edit="false">
+                <field name="occurred_at"/>
+                <field name="contract_id"/>
+                <field name="version_id"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="event_type"/>
+                <field name="actor_id"/>
+                <field name="reason"/>
+                <field name="approval_reference"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_version_event_form" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.event.form</field>
+        <field name="model">cpla.customer.contract.version.event</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <sheet>
+                    <group>
+                        <field name="event_type"/>
+                        <field name="occurred_at"/>
+                        <field name="actor_id"/>
+                        <field name="contract_id"/>
+                        <field name="version_id"/>
+                        <field name="company_id"/>
+                        <field name="source_version_id"/>
+                        <field name="supersedes_version_id"/>
+                        <field name="approval_reference"/>
+                        <field name="reason"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_customer_contract_version_compare_form" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.compare.form</field>
+        <field name="model">cpla.customer.contract.version.compare</field>
+        <field name="arch" type="xml">
+            <form string="Compare Versions">
+                <group>
+                    <field name="baseline_version_id"/>
+                    <field name="candidate_version_id"/>
+                </group>
+                <footer>
+                    <button name="action_compare" type="object" string="Compare" class="btn-primary"/>
+                    <button string="Close" special="cancel"/>
+                </footer>
+                <group>
+                    <field name="result_text" nolabel="1"/>
+                    <field name="result_html" nolabel="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cpla_customer_contract_version" model="ir.actions.act_window">
+        <field name="name">Contract Versions</field>
+        <field name="res_model">cpla.customer.contract.version</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_customer_contract_amendment_review" model="ir.actions.act_window">
+        <field name="name">Amendment Review</field>
+        <field name="res_model">cpla.customer.contract.version</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'ready_for_review')]</field>
+    </record>
+
+    <menuitem id="menu_cpla_contract_versions"
+              name="Contract Versions"
+              parent="menu_cpla_contracts"
+              action="action_cpla_customer_contract_version"
+              sequence="20"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_amendment_review"
+              name="Amendment Review"
+              parent="menu_cpla_contracts"
+              action="action_cpla_customer_contract_amendment_review"
+              sequence="30"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

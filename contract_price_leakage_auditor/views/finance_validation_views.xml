@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_finance_validation_list" model="ir.ui.view">
+        <field name="name">cpla.finance.validation.list</field>
+        <field name="model">cpla.finance.validation</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="case_id"/>
+                <field name="accepted_potential_exact"/>
+                <field name="proposed_validated_exact"/>
+                <field name="validated_exact"/>
+                <field name="rejected_exact"/>
+                <field name="unresolved_exact"/>
+                <field name="review_currency_id"/>
+                <field name="reviewer_id"/>
+                <field name="approval_level_done"/>
+                <field name="state"/>
+                <field name="requested_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_finance_validation_form" model="ir.ui.view">
+        <field name="name">cpla.finance.validation.form</field>
+        <field name="model">cpla.finance.validation</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_submit" type="object" string="Submit for Finance Review" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'draft'"/>
+                    <button name="action_start_review" type="object" string="Start Finance Review"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_open_evidence_wizard" type="object" string="Request Additional Evidence"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('submitted', 'under_finance_review', 'proposed_decision')"/>
+                    <button name="action_open_propose_wizard" type="object" string="Propose Validation Amount"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('under_finance_review', 'proposed_decision')"/>
+                    <button name="action_request_approval" type="object" string="Request Approval"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'proposed_decision'"/>
+                    <button name="action_open_approve_wizard" type="object" string="Approve" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'pending_approval'"/>
+                    <button name="action_open_deny_wizard" type="object" string="Reject Level"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'pending_approval'"/>
+                    <button name="action_retire_stale_package" type="object" string="Retire Stale Package"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'stale_source_review_required'"/>
+                    <button name="action_open_correction_wizard" type="object" string="Correct Decision"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('approved', 'partially_approved', 'rejected')"/>
+                    <button name="action_open_findings" type="object" string="View Calculation Evidence"/>
+                    <button name="action_open_case" type="object" string="Open Investigation Case"/>
+                    <button name="action_prepare_recovery_request" type="object" string="Prepare Recovery Request"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state not in ('approved', 'partially_approved')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,under_finance_review,pending_approval,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        Accepted potential leakage, the proposed validation, and the finance-validated amount are different figures.
+                        A finance-validated amount is not recovered cash, not a customer receivable, not a waiver, and not a billed recovery.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Overview">
+                            <field name="company_id"/>
+                            <field name="partner_id"/>
+                            <field name="case_id"/>
+                            <field name="submission_id"/>
+                            <field name="policy_id"/>
+                            <field name="policy_reference"/>
+                            <field name="evidence_completeness"/>
+                            <field name="stale_source"/>
+                            <field name="is_current"/>
+                        </group>
+                        <group string="Financial breakdown">
+                            <field name="review_currency_id"/>
+                            <field name="accepted_potential_exact"/>
+                            <field name="proposed_validated_exact"/>
+                            <field name="proposed_rejected_exact"/>
+                            <field name="proposed_unresolved_exact"/>
+                            <field name="validated_exact"/>
+                            <field name="rejected_exact"/>
+                            <field name="unresolved_exact"/>
+                            <field name="decision_type"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Finding-level decisions" name="lines">
+                            <field name="line_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="finding_id"/>
+                                    <field name="result_id"/>
+                                    <field name="version_id"/>
+                                    <field name="product_id"/>
+                                    <field name="potential_exact"/>
+                                    <field name="currency_id"/>
+                                    <field name="proposed_validated_exact"/>
+                                    <field name="approved_validated_exact"/>
+                                    <field name="approved_rejected_exact"/>
+                                    <field name="approved_unresolved_exact"/>
+                                    <field name="reason_code"/>
+                                    <field name="decision_type"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Evidence" name="evidence">
+                            <group>
+                                <field name="submission_snapshot"/>
+                                <field name="missing_evidence_note"/>
+                                <field name="fx_rate_exact"/>
+                                <field name="fx_rate_date"/>
+                                <field name="fx_rate_note"/>
+                            </group>
+                        </page>
+                        <page string="Approval matrix" name="approval">
+                            <group>
+                                <field name="required_level_count"/>
+                                <field name="approval_level_done"/>
+                                <field name="next_level_sequence"/>
+                                <field name="policy_snapshot"/>
+                                <field name="level_denied"/>
+                            </group>
+                            <field name="approval_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="acted_at"/>
+                                    <field name="actor_id"/>
+                                    <field name="level_sequence"/>
+                                    <field name="authority_group"/>
+                                    <field name="decision"/>
+                                    <field name="amount_exact"/>
+                                    <field name="currency_id"/>
+                                    <field name="policy_reference"/>
+                                    <field name="reason"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Review notes" name="notes">
+                            <group>
+                                <field name="decision_reason"/>
+                                <field name="requested_by_id"/>
+                                <field name="requested_at"/>
+                                <field name="reviewer_id"/>
+                                <field name="reviewed_at"/>
+                                <field name="decision_by_id"/>
+                                <field name="decision_at"/>
+                            </group>
+                        </page>
+                        <page string="History" name="history">
+                            <group>
+                                <field name="supersedes_id"/>
+                                <field name="superseded_by_id"/>
+                            </group>
+                        </page>
+                        <page string="DEV-16 handoff" name="handoff">
+                            <div class="alert alert-warning" role="alert">
+                                The current finance-validated amount is not authority to bill or collect cash.
+                                A recovery request prepared from this decision is not an invoice and is not collected cash.
+                            </div>
+                            <group>
+                                <field name="validated_exact"/>
+                                <field name="creates_customer_receivable"/>
+                                <field name="proves_cash_collection"/>
+                                <field name="is_waiver"/>
+                                <field name="is_recovery_billed"/>
+                                <field name="is_cash_recovered"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_finance_validation_search" model="ir.ui.view">
+        <field name="name">cpla.finance.validation.search</field>
+        <field name="model">cpla.finance.validation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="case_id"/>
+                <filter name="filter_pending" string="Pending finance validation" domain="[('state', 'in', ('submitted', 'under_finance_review'))]"/>
+                <filter name="filter_mine" string="My finance reviews" domain="['|', ('requested_by_id', '=', uid), ('reviewer_id', '=', uid)]"/>
+                <filter name="filter_evidence" string="Additional evidence required" domain="[('state', '=', 'additional_evidence_required')]"/>
+                <filter name="filter_approval" string="Pending approval" domain="[('state', '=', 'pending_approval')]"/>
+                <filter name="filter_approved" string="Approved validations" domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_partial" string="Partially validated" domain="[('state', '=', 'partially_approved')]"/>
+                <filter name="filter_rejected" string="Rejected validations" domain="[('state', '=', 'rejected')]"/>
+                <filter name="filter_stale" string="Stale validation reviews" domain="['|', ('state', '=', 'stale_source_review_required'), ('stale_source', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_cpla_finance_validation_policy_list" model="ir.ui.view">
+        <field name="name">cpla.finance.validation.policy.list</field>
+        <field name="model">cpla.finance.validation.policy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id"/>
+                <field name="threshold_basis"/>
+                <field name="partial_validation_allowed"/>
+                <field name="four_eyes_required"/>
+                <field name="state"/>
+                <field name="is_current"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_finance_validation_policy_form" model="ir.ui.view">
+        <field name="name">cpla.finance.validation.policy.form</field>
+        <field name="model">cpla.finance.validation.policy</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve_policy" type="object" string="Approve Policy Revision" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'draft'"/>
+                    <button name="action_new_revision" type="object" string="New Revision"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'approved' or not is_current"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        No approval amount is seeded. A missing or draft matrix blocks formal finance approval.
+                        This policy does not post an invoice or collect cash.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <field name="name" readonly="state != 'draft'"/>
+                        <field name="company_id" readonly="state != 'draft'"/>
+                        <field name="currency_id" readonly="state != 'draft'"/>
+                        <field name="threshold_basis" readonly="state != 'draft'"/>
+                        <field name="partial_validation_allowed" readonly="state != 'draft'"/>
+                        <field name="four_eyes_required" readonly="state != 'draft'"/>
+                        <field name="change_reason" readonly="state != 'draft'"/>
+                        <field name="is_current"/>
+                        <field name="approved_by_id"/>
+                        <field name="approved_at"/>
+                        <field name="supersedes_id"/>
+                    </group>
+                    <field name="level_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="level_sequence"/>
+                            <field name="name"/>
+                            <field name="authority_group"/>
+                            <field name="applies_from_exact"/>
+                            <field name="has_ceiling"/>
+                            <field name="maximum_exact"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_finance_validation_wizard_form" model="ir.ui.view">
+        <field name="name">cpla.finance.validation.wizard.form</field>
+        <field name="model">cpla.finance.validation.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="operation" readonly="1"/>
+                    <field name="validation_id" readonly="1"/>
+                    <field name="line_id" invisible="operation != 'propose'"/>
+                    <field name="validated_exact" invisible="operation != 'propose'"/>
+                    <field name="rejected_exact" invisible="operation != 'propose'"/>
+                    <field name="unresolved_exact" invisible="operation != 'propose'"/>
+                    <field name="reason_code" invisible="operation != 'propose'"/>
+                    <field name="explanation" invisible="operation != 'propose'"/>
+                    <field name="reason" invisible="operation == 'propose'"/>
+                    <field name="required_action" invisible="operation != 'evidence'"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cpla_finance_validation" model="ir.actions.act_window">
+        <field name="name">Finance validation</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_finance_pending" model="ir.actions.act_window">
+        <field name="name">Pending Finance Validation</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_pending': 1}</field>
+    </record>
+    <record id="action_cpla_finance_mine" model="ir.actions.act_window">
+        <field name="name">My Finance Reviews</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_mine': 1}</field>
+    </record>
+    <record id="action_cpla_finance_evidence" model="ir.actions.act_window">
+        <field name="name">Additional Evidence Required</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_evidence': 1}</field>
+    </record>
+    <record id="action_cpla_finance_approval" model="ir.actions.act_window">
+        <field name="name">Pending Approval</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_approval': 1}</field>
+    </record>
+    <record id="action_cpla_finance_approved" model="ir.actions.act_window">
+        <field name="name">Approved Validations</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_approved': 1}</field>
+    </record>
+    <record id="action_cpla_finance_partial" model="ir.actions.act_window">
+        <field name="name">Partially Validated</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_partial': 1}</field>
+    </record>
+    <record id="action_cpla_finance_rejected" model="ir.actions.act_window">
+        <field name="name">Rejected Validations</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_rejected': 1}</field>
+    </record>
+    <record id="action_cpla_finance_stale" model="ir.actions.act_window">
+        <field name="name">Stale Validation Reviews</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_stale': 1}</field>
+    </record>
+    <record id="action_cpla_finance_history" model="ir.actions.act_window">
+        <field name="name">Decision History</field>
+        <field name="res_model">cpla.finance.validation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_finance_policy" model="ir.actions.act_window">
+        <field name="name">Finance Approval Policies</field>
+        <field name="res_model">cpla.finance.validation.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_cpla_leakage_case_form_finance" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.form.finance</field>
+        <field name="model">cpla.leakage.case</field>
+        <field name="inherit_id" ref="view_cpla_leakage_case_form"/>
+        <field name="arch" type="xml">
+            <button name="action_open_return_wizard" position="after">
+                <button name="action_open_finance_validations" type="object" string="Finance Validations"/>
+            </button>
+        </field>
+    </record>
+
+    <menuitem id="menu_cpla_finance"
+              name="Finance Review"
+              parent="menu_cpla_root"
+              sequence="50"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_pending"
+              name="Pending Finance Validation"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_pending"
+              sequence="10"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_mine"
+              name="My Finance Reviews"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_mine"
+              sequence="20"
+              groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_evidence"
+              name="Additional Evidence Required"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_evidence"
+              sequence="30"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_approval"
+              name="Pending Approval"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_approval"
+              sequence="40"
+              groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_approved"
+              name="Approved Validations"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_approved"
+              sequence="50"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_partial"
+              name="Partially Validated"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_partial"
+              sequence="60"
+              groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_rejected"
+              name="Rejected Validations"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_rejected"
+              sequence="70"
+              groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_stale"
+              name="Stale Validation Reviews"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_stale"
+              sequence="80"
+              groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_history"
+              name="Decision History"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_history"
+              sequence="90"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_finance_policy"
+              name="Finance Approval Policies"
+              parent="menu_cpla_finance"
+              action="action_cpla_finance_policy"
+              sequence="100"
+              groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

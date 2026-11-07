@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_customer_contract_version_company_rule" model="ir.rule">
+        <field name="name">Contract version: active companies only</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_line_company_rule" model="ir.rule">
+        <field name="name">Contract version line: active companies only</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_evidence_company_rule" model="ir.rule">
+        <field name="name">Contract version evidence: active companies only</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_evidence"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_tier_company_rule" model="ir.rule">
+        <field name="name">Contract version tier: active companies only</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_tier"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_event_company_rule" model="ir.rule">
+        <field name="name">Contract version event: active companies only</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_event"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_compare_owner_rule" model="ir.rule">
+        <field name="name">Version comparison: creator only</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_compare"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="cpla_customer_contract_version_owner_rule" model="ir.rule">
+        <field name="name">Contract version: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version"/>
+        <field name="domain_force">[('contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_line_owner_rule" model="ir.rule">
+        <field name="name">Contract version line: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_line"/>
+        <field name="domain_force">[('version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_evidence_owner_rule" model="ir.rule">
+        <field name="name">Contract version evidence: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_evidence"/>
+        <field name="domain_force">[('version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_tier_owner_rule" model="ir.rule">
+        <field name="name">Contract version tier: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_tier"/>
+        <field name="domain_force">[('version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_event_owner_rule" model="ir.rule">
+        <field name="name">Contract version event: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_event"/>
+        <field name="domain_force">[('version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="cpla_customer_contract_version_manager_rule" model="ir.rule">
+        <field name="name">Contract version: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_line_manager_rule" model="ir.rule">
+        <field name="name">Contract version line: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_evidence_manager_rule" model="ir.rule">
+        <field name="name">Contract version evidence: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_evidence"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_tier_manager_rule" model="ir.rule">
+        <field name="name">Contract version tier: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_tier"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_customer_contract_version_event_manager_rule" model="ir.rule">
+        <field name="name">Contract version event: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_customer_contract_version_event"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

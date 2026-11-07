@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_leakage_reassessment_list" model="ir.ui.view">
+        <field name="name">cpla.leakage.reassessment.list</field>
+        <field name="model">cpla.leakage.reassessment</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="finding_id"/>
+                <field name="partner_id"/>
+                <field name="trigger_type"/>
+                <field name="original_exposure_exact"/>
+                <field name="proposed_exposure_exact"/>
+                <field name="delta_exact"/>
+                <field name="comparison_currency_id"/>
+                <field name="state"/>
+                <field name="requested_by_id"/>
+                <field name="decision_by_id"/>
+                <field name="requested_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_reassessment_form" model="ir.ui.view">
+        <field name="name">cpla.leakage.reassessment.form</field>
+        <field name="model">cpla.leakage.reassessment</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_evaluate" type="object" string="Evaluate" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('requested', 'under_evaluation', 'proposed_revision_ready', 'evidence_review_required', 'blocked', 'failed')"/>
+                    <button name="action_open_accept_wizard" type="object" string="Accept Proposal"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'proposed_revision_ready'"/>
+                    <button name="action_open_reject_wizard" type="object" string="Reject Proposal"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state not in ('proposed_revision_ready', 'evidence_review_required')"/>
+                    <button name="action_open_cancel_wizard" type="object" string="Cancel Request"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state not in ('requested', 'under_evaluation', 'proposed_revision_ready', 'evidence_review_required', 'blocked', 'failed')"/>
+                    <button name="action_verify_digest" type="object" string="Verify Digest"/>
+                    <button name="action_open_original_result" type="object" string="View Original Snapshot"
+                            invisible="not original_result_id"/>
+                    <button name="action_open_case" type="object" string="Open Investigation Case"
+                            invisible="not case_id"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="requested,under_evaluation,proposed_revision_ready,accepted,rejected"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        A proposed amount is not the current accepted result until a finance manager accepts it.
+                        The difference is not recovered cash, a write-off, or a finance validation.
+                        The digest detects a changed stored proposal. It is not a legal archive.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Request">
+                            <field name="company_id"/>
+                            <field name="finding_id"/>
+                            <field name="case_id"/>
+                            <field name="trigger_type"/>
+                            <field name="change_class"/>
+                            <field name="source_model"/>
+                            <field name="source_res_id"/>
+                            <field name="evaluation_policy"/>
+                            <field name="knowledge_cutoff"/>
+                            <field name="reason"/>
+                        </group>
+                        <group string="Proposal">
+                            <field name="original_exposure_exact"/>
+                            <field name="proposed_exposure_exact"/>
+                            <field name="delta_exact"/>
+                            <field name="delta_class"/>
+                            <field name="comparison_currency_id"/>
+                            <field name="proposed_quantity_exact"/>
+                            <field name="proposed_adjusted_exact"/>
+                            <field name="proposed_actual_exact"/>
+                            <field name="calculation_authoritative"/>
+                            <field name="is_recovered_cash"/>
+                            <field name="is_writeoff"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="History">
+                            <field name="original_identity"/>
+                            <field name="proposed_identity"/>
+                            <field name="original_cutoff"/>
+                            <field name="proposed_cutoff_token"/>
+                            <field name="proposed_version_id"/>
+                            <field name="engine_version"/>
+                            <field name="schema_version"/>
+                            <field name="digest_mismatch"/>
+                            <field name="verification_outcome"/>
+                        </group>
+                        <group string="Decision">
+                            <field name="requested_by_id"/>
+                            <field name="requested_at"/>
+                            <field name="evaluated_by_id"/>
+                            <field name="decision_by_id"/>
+                            <field name="decision_at"/>
+                            <field name="decision_reason"/>
+                            <field name="successor_finding_id"/>
+                            <field name="apply_run_id"/>
+                            <field name="error_summary"/>
+                            <field name="review_reason"/>
+                        </group>
+                    </group>
+                    <group string="Revision comparison">
+                        <group string="Original">
+                            <field name="original_version_id"/>
+                            <field name="original_quantity_exact"/>
+                            <field name="original_adjusted_exact"/>
+                            <field name="original_actual_exact"/>
+                            <field name="original_exposure_exact"/>
+                            <field name="original_cutoff"/>
+                        </group>
+                        <group string="Proposed">
+                            <field name="proposed_version_id"/>
+                            <field name="proposed_quantity_exact"/>
+                            <field name="proposed_adjusted_exact"/>
+                            <field name="proposed_actual_exact"/>
+                            <field name="proposed_exposure_exact"/>
+                            <field name="delta_exact"/>
+                            <field name="delta_class"/>
+                            <field name="proposed_cutoff_token"/>
+                        </group>
+                    </group>
+                    <group string="Difference">
+                        <field name="difference_explanation" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="History" name="history">
+                            <field name="event_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="occurred_at"/>
+                                    <field name="event_type"/>
+                                    <field name="actor_id"/>
+                                    <field name="prior_state"/>
+                                    <field name="new_state"/>
+                                    <field name="reason"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_reassessment_wizard_form" model="ir.ui.view">
+        <field name="name">cpla.leakage.reassessment.wizard.form</field>
+        <field name="model">cpla.leakage.reassessment.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="company_id" readonly="1"/>
+                    <field name="finding_id" readonly="1"/>
+                    <field name="operation" readonly="1"/>
+                    <field name="trigger_type" invisible="operation != 'request'"/>
+                    <field name="source_model"/>
+                    <field name="source_res_id"/>
+                    <field name="knowledge_cutoff"/>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button name="action_request" type="object" string="Request Reassessment" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cpla_leakage_reassessment" model="ir.actions.act_window">
+        <field name="name">Reassessments</field>
+        <field name="res_model">cpla.leakage.reassessment</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem id="menu_cpla_reassessments"
+              name="Reassessments"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_reassessment"
+              sequence="80"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

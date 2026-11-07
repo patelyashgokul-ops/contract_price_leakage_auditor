@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_recovery_request_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.request.list</field>
+        <field name="model">cpla.recovery.request</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="case_id"/>
+                <field name="validation_id"/>
+                <field name="requested_amount_exact"/>
+                <field name="approved_recovery_exact"/>
+                <field name="current_recovery_exact"/>
+                <field name="currency_id"/>
+                <field name="owner_id"/>
+                <field name="state"/>
+                <field name="customer_state"/>
+                <field name="billing_state"/>
+                <field name="stale_source"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_request_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.request.form</field>
+        <field name="model">cpla.recovery.request</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'draft'"/>
+                    <button name="action_mark_under_review" type="object" string="Start Commercial Review"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_request_approval" type="object" string="Request Approval"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state not in ('submitted', 'under_review')"/>
+                    <button name="action_resume" type="object" string="Resume"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'evidence_required'"/>
+                    <button name="action_open_approve_wizard" type="object" string="Approve Recovery" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'pending_approval'"/>
+                    <button name="action_open_reject_wizard" type="object" string="Reject"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'pending_approval'"/>
+                    <button name="action_open_withdraw_wizard" type="object" string="Withdraw"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('withdrawn', 'rejected', 'superseded', 'stale_source') or handoff_key"/>
+                    <button name="action_mark_discussion" type="object" string="Record Customer Discussion"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'approved' or customer_state != 'none'"/>
+                    <button name="action_open_handoff_wizard" type="object" string="Authorize Accounting Handoff"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'approved' or billing_state == 'ready_for_accounting'"/>
+                    <button name="action_prepare_billing" type="object" string="Prepare accounting billing"
+                            groups="contract_price_leakage_auditor.group_finance_manager"
+                            invisible="billing_state != 'ready_for_accounting'"/>
+                    <button name="action_open_case" type="object" string="Open Investigation Case"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,pending_approval,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        An approved recovery target is not a posted invoice and is not collected cash.
+                        A customer dispute is a position inside the target. It is not extra leakage.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Overview">
+                            <field name="company_id"/>
+                            <field name="partner_id"/>
+                            <field name="case_id"/>
+                            <field name="validation_id"/>
+                            <field name="owner_id"/>
+                            <field name="requested_by_id"/>
+                            <field name="requested_at"/>
+                            <field name="customer_state"/>
+                            <field name="billing_state"/>
+                            <field name="stale_source"/>
+                        </group>
+                        <group string="Commercial allocation">
+                            <field name="currency_id"/>
+                            <field name="requested_amount_exact"/>
+                            <field name="approved_recovery_exact"/>
+                            <field name="current_recovery_exact"/>
+                            <field name="billed_amount_exact"/>
+                            <field name="collected_amount_exact"/>
+                            <field name="handoff_amount_exact"/>
+                            <field name="handoff_key"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Validated source lines" name="lines">
+                            <field name="line_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="finding_id"/>
+                                    <field name="validation_line_id"/>
+                                    <field name="validated_available_exact"/>
+                                    <field name="proposed_recovery_exact"/>
+                                    <field name="approved_recovery_exact"/>
+                                    <field name="current_recovery_exact"/>
+                                    <field name="currency_id"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Waiver decisions" name="waivers">
+                            <field name="waiver_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="reference"/>
+                                    <field name="proposed_amount_exact"/>
+                                    <field name="approved_amount_exact"/>
+                                    <field name="reason_code"/>
+                                    <field name="state"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Disputes" name="disputes">
+                            <field name="dispute_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="reference"/>
+                                    <field name="disputed_amount_exact"/>
+                                    <field name="category"/>
+                                    <field name="state"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Settlements" name="settlements">
+                            <field name="settlement_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="reference"/>
+                                    <field name="proposed_amount_exact"/>
+                                    <field name="additional_waiver_exact"/>
+                                    <field name="internal_state"/>
+                                    <field name="customer_state"/>
+                                    <field name="execution_state"/>
+                                    <field name="counts_current"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Approval matrix" name="approval">
+                            <group>
+                                <field name="policy_id"/>
+                                <field name="policy_reference"/>
+                                <field name="required_level_count"/>
+                                <field name="approval_level_done"/>
+                                <field name="next_level_sequence"/>
+                                <field name="approval_snapshot"/>
+                                <field name="source_revision"/>
+                                <field name="source_fingerprint"/>
+                            </group>
+                        </page>
+                        <page string="Evidence" name="evidence">
+                            <group>
+                                <field name="fx_rate_exact"/>
+                                <field name="fx_rate_date"/>
+                                <field name="fx_rate_note"/>
+                                <field name="supersedes_id"/>
+                            </group>
+                        </page>
+                        <page string="Communication history" name="history">
+                            <field name="event_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="acted_at"/>
+                                    <field name="actor_id"/>
+                                    <field name="event_type"/>
+                                    <field name="old_value"/>
+                                    <field name="new_value"/>
+                                    <field name="currency_id"/>
+                                    <field name="channel"/>
+                                    <field name="response_on"/>
+                                    <field name="reason"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Accounting handoff" name="handoff">
+                            <div class="alert alert-warning" role="alert">
+                                Handoff readiness is authorization evidence for a later accounting step.
+                                This screen does not create an invoice, a debit note, or a payment.
+                            </div>
+                            <group>
+                                <field name="billing_state"/>
+                                <field name="handoff_key"/>
+                                <field name="handoff_revision"/>
+                                <field name="handoff_amount_exact"/>
+                                <field name="billed_amount_exact"/>
+                                <field name="collected_amount_exact"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_request_search" model="ir.ui.view">
+        <field name="name">cpla.recovery.request.search</field>
+        <field name="model">cpla.recovery.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="case_id"/>
+                <field name="validation_id"/>
+                <filter name="filter_mine" string="My recovery requests" domain="[('requested_by_id', '=', uid)]"/>
+                <filter name="filter_approval" string="Pending recovery approval" domain="[('state', '=', 'pending_approval')]"/>
+                <filter name="filter_approved" string="Approved recovery targets" domain="[('state', '=', 'approved'), ('stale_source', '=', False)]"/>
+                <filter name="filter_handoff" string="Accounting handoff ready" domain="[('billing_state', '=', 'ready_for_accounting')]"/>
+                <filter name="filter_history" string="Closed or stale" domain="[('state', 'in', ('rejected', 'withdrawn', 'superseded', 'stale_source'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_waiver_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.waiver.list</field>
+        <field name="model">cpla.recovery.waiver</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="validation_id"/>
+                <field name="proposed_amount_exact"/>
+                <field name="approved_amount_exact"/>
+                <field name="currency_id"/>
+                <field name="reason_code"/>
+                <field name="state"/>
+                <field name="counts_current"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_waiver_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.waiver.form</field>
+        <field name="model">cpla.recovery.waiver</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'draft'"/>
+                    <button name="action_request_approval" type="object" string="Request Approval"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_open_approve_wizard" type="object" string="Approve Waiver" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'pending_approval'"/>
+                    <button name="action_open_reject_wizard" type="object" string="Reject"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'pending_approval'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,pending_approval,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        A commercial waiver is an authorized decision not to pursue a validated amount.
+                        It is not a finance rejection and it does not post an accounting write-off.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Source">
+                            <field name="company_id"/>
+                            <field name="partner_id"/>
+                            <field name="validation_id"/>
+                            <field name="validation_line_id"/>
+                            <field name="request_id"/>
+                            <field name="currency_id"/>
+                            <field name="reduces_recovery"/>
+                            <field name="stale_source"/>
+                            <field name="counts_current"/>
+                        </group>
+                        <group string="Decision">
+                            <field name="proposed_amount_exact"/>
+                            <field name="approved_amount_exact"/>
+                            <field name="reason_code"/>
+                            <field name="explanation"/>
+                            <field name="required_level_count"/>
+                            <field name="approval_level_done"/>
+                            <field name="approved_by_id"/>
+                            <field name="approved_at"/>
+                            <field name="policy_reference"/>
+                            <field name="supersedes_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_waiver_search" model="ir.ui.view">
+        <field name="name">cpla.recovery.waiver.search</field>
+        <field name="model">cpla.recovery.waiver</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <filter name="filter_approval" string="Pending waiver approval" domain="[('state', '=', 'pending_approval')]"/>
+                <filter name="filter_approved" string="Approved waivers" domain="[('state', '=', 'approved'), ('counts_current', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_dispute_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.dispute.list</field>
+        <field name="model">cpla.recovery.dispute</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="request_id"/>
+                <field name="disputed_amount_exact"/>
+                <field name="currency_id"/>
+                <field name="category"/>
+                <field name="state"/>
+                <field name="owner_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_dispute_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.dispute.form</field>
+        <field name="model">cpla.recovery.dispute</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="open,under_review,negotiating,resolved_agreed"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        A dispute records the customer position inside an approved recovery target.
+                        It does not reduce that target and it does not send a customer email.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Scope">
+                            <field name="company_id"/>
+                            <field name="partner_id"/>
+                            <field name="request_id"/>
+                            <field name="request_line_id"/>
+                            <field name="currency_id"/>
+                            <field name="disputed_amount_exact"/>
+                            <field name="owner_id"/>
+                            <field name="counts_current"/>
+                        </group>
+                        <group string="Customer position">
+                            <field name="category"/>
+                            <field name="explanation"/>
+                            <field name="evidence_note"/>
+                            <field name="channel"/>
+                            <field name="response_on"/>
+                            <field name="customer_contact"/>
+                            <field name="company_position"/>
+                            <field name="reassessment_requested"/>
+                            <field name="resolution_reason"/>
+                            <field name="resolved_at"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_settlement_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.settlement.list</field>
+        <field name="model">cpla.recovery.settlement</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="partner_id"/>
+                <field name="request_id"/>
+                <field name="proposed_amount_exact"/>
+                <field name="additional_waiver_exact"/>
+                <field name="currency_id"/>
+                <field name="internal_state"/>
+                <field name="customer_state"/>
+                <field name="execution_state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_settlement_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.settlement.form</field>
+        <field name="model">cpla.recovery.settlement</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="internal_state != 'draft'"/>
+                    <button name="action_request_approval" type="object" string="Request Internal Approval"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="internal_state != 'submitted'"/>
+                    <button name="action_open_approve_wizard" type="object" string="Approve Internally"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="internal_state != 'under_review'"/>
+                    <field name="internal_state" widget="statusbar" statusbar_visible="draft,submitted,under_review,approved"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        Internal approval is not customer acceptance. Customer acceptance is not collected cash.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Proposal">
+                            <field name="company_id"/>
+                            <field name="partner_id"/>
+                            <field name="request_id"/>
+                            <field name="validation_id"/>
+                            <field name="currency_id"/>
+                            <field name="proposed_amount_exact"/>
+                            <field name="additional_waiver_exact"/>
+                            <field name="revised_target_exact"/>
+                            <field name="counteroffer_exact"/>
+                            <field name="summary"/>
+                            <field name="reason"/>
+                        </group>
+                        <group string="Agreement">
+                            <field name="customer_state"/>
+                            <field name="execution_state"/>
+                            <field name="acceptance_evidence"/>
+                            <field name="acceptance_channel"/>
+                            <field name="acceptance_on"/>
+                            <field name="counteroffer_evidence"/>
+                            <field name="additional_waiver_id"/>
+                            <field name="policy_reference"/>
+                            <field name="counts_current"/>
+                            <field name="supersedes_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_settlement_search" model="ir.ui.view">
+        <field name="name">cpla.recovery.settlement.search</field>
+        <field name="model">cpla.recovery.settlement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <filter name="filter_approval" string="Settlement approvals" domain="[('internal_state', '=', 'under_review')]"/>
+                <filter name="filter_current" string="Current proposals" domain="[('counts_current', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_event_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.event.list</field>
+        <field name="model">cpla.recovery.event</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="acted_at"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="request_id"/>
+                <field name="event_type"/>
+                <field name="actor_id"/>
+                <field name="old_value"/>
+                <field name="new_value"/>
+                <field name="currency_id"/>
+                <field name="reason"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_policy_list" model="ir.ui.view">
+        <field name="name">cpla.recovery.policy.list</field>
+        <field name="model">cpla.recovery.policy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id"/>
+                <field name="four_eyes_required"/>
+                <field name="dispute_blocks_handoff"/>
+                <field name="state"/>
+                <field name="is_current"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_policy_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.policy.form</field>
+        <field name="model">cpla.recovery.policy</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve_policy" type="object" string="Approve Policy Revision" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        No approval amount is seeded. A missing or draft matrix blocks formal commercial approval.
+                        This policy does not post an invoice or collect cash.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <field name="name" readonly="state != 'draft'"/>
+                        <field name="company_id" readonly="state != 'draft'"/>
+                        <field name="currency_id" readonly="state != 'draft'"/>
+                        <field name="four_eyes_required" readonly="state != 'draft'"/>
+                        <field name="dispute_blocks_handoff" readonly="state != 'draft'"/>
+                        <field name="change_reason" readonly="state != 'draft'"/>
+                        <field name="is_current"/>
+                        <field name="approved_by_id"/>
+                        <field name="approved_at"/>
+                        <field name="supersedes_id"/>
+                    </group>
+                    <field name="level_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="action_kind"/>
+                            <field name="level_sequence"/>
+                            <field name="name"/>
+                            <field name="authority_group"/>
+                            <field name="applies_from_exact"/>
+                            <field name="has_ceiling"/>
+                            <field name="maximum_exact"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_recovery_wizard_form" model="ir.ui.view">
+        <field name="name">cpla.recovery.wizard.form</field>
+        <field name="model">cpla.recovery.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="operation" readonly="1"/>
+                    <field name="company_id" readonly="1"/>
+                    <field name="validation_id" invisible="operation not in ('recovery',)"/>
+                    <field name="validation_line_id" invisible="operation not in ('recovery', 'waiver')"/>
+                    <field name="request_id" invisible="operation != 'settlement'"/>
+                    <field name="request_line_id" invisible="operation not in ('dispute', 'acknowledgement', 'waiver')"/>
+                    <field name="amount_exact" invisible="operation not in ('recovery', 'waiver', 'dispute', 'acknowledgement', 'settlement', 'counteroffer')"/>
+                    <field name="additional_waiver_exact" invisible="operation != 'settlement'"/>
+                    <field name="reason_code" invisible="operation != 'waiver'"/>
+                    <field name="category" invisible="operation != 'dispute'"/>
+                    <field name="reduces_recovery" invisible="operation != 'waiver'"/>
+                    <field name="summary" invisible="operation != 'settlement'"/>
+                    <field name="explanation"/>
+                    <field name="evidence_note" invisible="operation not in ('dispute', 'acknowledgement', 'counteroffer', 'acceptance')"/>
+                    <field name="channel" invisible="operation not in ('dispute', 'acknowledgement', 'counteroffer', 'acceptance')"/>
+                    <field name="response_on" invisible="operation not in ('dispute', 'acknowledgement', 'counteroffer', 'acceptance')"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cpla_recovery_request" model="ir.actions.act_window">
+        <field name="name">Recovery Requests</field>
+        <field name="res_model">cpla.recovery.request</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_mine" model="ir.actions.act_window">
+        <field name="name">My Recovery Requests</field>
+        <field name="res_model">cpla.recovery.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_mine': 1}</field>
+    </record>
+    <record id="action_cpla_recovery_approval" model="ir.actions.act_window">
+        <field name="name">Pending Recovery Approval</field>
+        <field name="res_model">cpla.recovery.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_approval': 1}</field>
+    </record>
+    <record id="action_cpla_recovery_approved" model="ir.actions.act_window">
+        <field name="name">Approved Recovery Targets</field>
+        <field name="res_model">cpla.recovery.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_approved': 1}</field>
+    </record>
+    <record id="action_cpla_recovery_waiver" model="ir.actions.act_window">
+        <field name="name">Waiver Requests</field>
+        <field name="res_model">cpla.recovery.waiver</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_waiver_approval" model="ir.actions.act_window">
+        <field name="name">Pending Waiver Approval</field>
+        <field name="res_model">cpla.recovery.waiver</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_approval': 1}</field>
+    </record>
+    <record id="action_cpla_recovery_dispute" model="ir.actions.act_window">
+        <field name="name">Customer Disputes</field>
+        <field name="res_model">cpla.recovery.dispute</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_settlement" model="ir.actions.act_window">
+        <field name="name">Settlement Proposals</field>
+        <field name="res_model">cpla.recovery.settlement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_cpla_recovery_settlement_approval" model="ir.actions.act_window">
+        <field name="name">Settlement Approvals</field>
+        <field name="res_model">cpla.recovery.settlement</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_approval': 1}</field>
+    </record>
+    <record id="action_cpla_recovery_handoff" model="ir.actions.act_window">
+        <field name="name">Accounting Handoff Ready</field>
+        <field name="res_model">cpla.recovery.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_handoff': 1}</field>
+    </record>
+    <record id="action_cpla_recovery_history" model="ir.actions.act_window">
+        <field name="name">Commercial Decision History</field>
+        <field name="res_model">cpla.recovery.event</field>
+        <field name="view_mode">list</field>
+    </record>
+    <record id="action_cpla_recovery_policy" model="ir.actions.act_window">
+        <field name="name">Commercial Approval Policies</field>
+        <field name="res_model">cpla.recovery.policy</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_cpla_recovery"
+              name="Recovery Management"
+              parent="menu_cpla_root"
+              sequence="55"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_requests"
+              name="Recovery Requests"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_request"
+              sequence="10"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_mine"
+              name="My Recovery Requests"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_mine"
+              sequence="20"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_approval"
+              name="Pending Recovery Approval"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_approval"
+              sequence="30"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_approved"
+              name="Approved Recovery Targets"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_approved"
+              sequence="40"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_waivers"
+              name="Waiver Requests"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_waiver"
+              sequence="50"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_waiver_approval"
+              name="Pending Waiver Approval"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_waiver_approval"
+              sequence="60"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_disputes"
+              name="Customer Disputes"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_dispute"
+              sequence="70"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_settlements"
+              name="Settlement Proposals"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_settlement"
+              sequence="80"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_settlement_approval"
+              name="Settlement Approvals"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_settlement_approval"
+              sequence="90"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_handoff"
+              name="Accounting Handoff Ready"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_handoff"
+              sequence="100"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_history"
+              name="Commercial Decision History"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_history"
+              sequence="110"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_recovery_policy"
+              name="Commercial Approval Policies"
+              parent="menu_cpla_recovery"
+              action="action_cpla_recovery_policy"
+              sequence="120"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_cpla_compliance" model="ir.ui.view">
+        <field name="name">sale.order.form.contract.compliance</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@id='action_confirm']" position="before">
+                <button
+                    name="action_cpla_recheck"
+                    type="object"
+                    string="Recheck Compliance"
+                    invisible="state == 'cancel'"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_cpla_view_price_locks"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-lock"
+                    invisible="cpla_price_lock_count == 0">
+                    <field name="cpla_price_lock_count" widget="statinfo" string="Price Evidence"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="after">
+                <field name="cpla_compliance_status" optional="show"/>
+                <field name="cpla_compliance_message" optional="hide"/>
+                <field name="cpla_approved_price_exact" optional="hide"/>
+                <field name="cpla_actual_price_exact" optional="hide"/>
+                <field name="cpla_preventive_exposure_exact" optional="hide"/>
+                <field name="cpla_approval_state" optional="hide"/>
+                <button
+                    name="action_cpla_request_override"
+                    type="object"
+                    string="Request Override"
+                    groups="contract_price_leakage_auditor.group_contract_user"
+                    invisible="display_type or is_downpayment"/>
+                <button
+                    name="action_cpla_view_approvals"
+                    type="object"
+                    string="View Approval"
+                    groups="contract_price_leakage_auditor.group_contract_user"
+                    invisible="display_type or is_downpayment"/>
+            </xpath>
+            <xpath expr="//page[@name='other_information']" position="before">
+                <page string="Contract Compliance" name="cpla_compliance">
+                    <group>
+                        <group>
+                            <field name="cpla_compliance_status"/>
+                            <field name="cpla_compliance_message"/>
+                            <field name="cpla_control_mode"/>
+                            <field name="cpla_blocking_count"/>
+                        </group>
+                        <group>
+                            <field name="cpla_eligible_count"/>
+                            <field name="cpla_compliant_count"/>
+                            <field name="cpla_override_count"/>
+                            <field name="cpla_below_count"/>
+                            <field name="cpla_missing_count"/>
+                            <field name="cpla_review_count"/>
+                            <field name="cpla_pending_count"/>
+                            <field name="cpla_preventive_exposure_exact"/>
+                            <field name="cpla_exposure_complete"/>
+                        </group>
+                    </group>
+                    <div class="text-muted">
+                        Preventive exposure is a quote-stage figure. It is not recovered cash and it is not an invoice leakage amount.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

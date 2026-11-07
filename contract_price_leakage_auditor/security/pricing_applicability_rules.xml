@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_pricing_applicability_check_company_rule" model="ir.rule">
+        <field name="name">Applicability check: active companies only</field>
+        <field name="model_id" ref="model_cpla_pricing_applicability_check"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_pricing_applicability_check_owner_rule" model="ir.rule">
+        <field name="name">Applicability check: creator only</field>
+        <field name="model_id" ref="model_cpla_pricing_applicability_check"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

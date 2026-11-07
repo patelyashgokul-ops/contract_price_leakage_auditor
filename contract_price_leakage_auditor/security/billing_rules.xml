@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_recovery_billing_policy_company_rule" model="ir.rule">
+        <field name="name">Recovery billing policy: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_billing_policy"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_billing_company_rule" model="ir.rule">
+        <field name="name">Recovery billing: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_billing"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_billing_line_company_rule" model="ir.rule">
+        <field name="name">Recovery billing line: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_billing_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_accounting_link_company_rule" model="ir.rule">
+        <field name="name">Recovery accounting link: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_accounting_link"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_collection_evidence_company_rule" model="ir.rule">
+        <field name="name">Recovery collection evidence: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_collection_evidence"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_accounting_adjustment_company_rule" model="ir.rule">
+        <field name="name">Recovery accounting adjustment: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_accounting_adjustment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

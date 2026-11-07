@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_invoice_audit_run_list" model="ir.ui.view">
+        <field name="name">cpla.invoice.audit.run.list</field>
+        <field name="model">cpla.invoice.audit.run</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="reference"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="mode"/>
+                <field name="state"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="processed_count"/>
+                <field name="selected_count"/>
+                <field name="finding_count"/>
+                <field name="review_count"/>
+                <field name="potential_exposure_exact"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_invoice_audit_run_form" model="ir.ui.view">
+        <field name="name">cpla.invoice.audit.run.form</field>
+        <field name="model">cpla.invoice.audit.run</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_run" type="object" string="Run Audit" class="btn-primary"
+                            invisible="state not in ('draft', 'queued')"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_queue" type="object" string="Queue"
+                            invisible="state != 'draft'"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ('draft', 'queued')"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_reassess" type="object" string="Reassess Changed Source"
+                            invisible="state not in ('completed', 'completed_with_exceptions', 'failed')"
+                            groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_view_results" type="object" string="View Results"/>
+                    <button name="action_view_findings" type="object" string="View Potential Findings"/>
+                    <button name="action_view_exceptions" type="object" string="View Exceptions"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,queued,running,completed,completed_with_exceptions,failed,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="state != 'draft'"/>
+                            <field name="mode" readonly="state != 'draft'"/>
+                            <field name="date_basis" readonly="state != 'draft'"/>
+                            <field name="date_from" readonly="state != 'draft'"/>
+                            <field name="date_to" readonly="state != 'draft'"/>
+                            <field name="initiated_by_id"/>
+                        </group>
+                        <group>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="product_id" readonly="state != 'draft'"/>
+                            <field name="contract_id" readonly="state != 'draft'"/>
+                            <field name="knowledge_cutoff" readonly="state != 'draft'"/>
+                            <field name="batch_size" readonly="state != 'draft'"/>
+                            <field name="started_on"/>
+                            <field name="finished_on"/>
+                        </group>
+                    </group>
+                    <group string="Progress">
+                        <field name="selected_count"/>
+                        <field name="processed_count"/>
+                        <field name="completed_count"/>
+                        <field name="finding_count"/>
+                        <field name="review_count"/>
+                        <field name="excluded_count"/>
+                        <field name="failure_count"/>
+                        <field name="potential_exposure_exact"/>
+                        <field name="error_summary"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Potential leakage is an estimated contractual difference. It is not finance-validated leakage, billed recovery, or collected cash.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_invoice_audit_run_search" model="ir.ui.view">
+        <field name="name">cpla.invoice.audit.run.search</field>
+        <field name="model">cpla.invoice.audit.run</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="company_id"/>
+                <field name="partner_id"/>
+                <filter name="filter_exceptions" string="Completed with exceptions" domain="[('state', '=', 'completed_with_exceptions')]"/>
+                <filter name="filter_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cpla_invoice_audit_run" model="ir.actions.act_window">
+        <field name="name">Invoice Audit Runs</field>
+        <field name="res_model">cpla.invoice.audit.run</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p>Read posted customer invoices and store potential leakage. A result is not finance-validated, billed, or collected.</p>
+        </field>
+    </record>
+
+    <record id="view_cpla_invoice_audit_result_list" model="ir.ui.view">
+        <field name="name">cpla.invoice.audit.result.list</field>
+        <field name="model">cpla.invoice.audit.result</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="version_id"/>
+                <field name="pricing_date"/>
+                <field name="approved_adjusted_exact"/>
+                <field name="actual_unit_exact"/>
+                <field name="eligible_quantity_exact"/>
+                <field name="raw_difference_exact"/>
+                <field name="potential_exposure_exact"/>
+                <field name="result_classification"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_invoice_audit_result_form" model="ir.ui.view">
+        <field name="name">cpla.invoice.audit.result.form</field>
+        <field name="model">cpla.invoice.audit.result</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_view_evidence" type="object" string="View Calculation Evidence"/>
+                    <field name="result_classification" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="run_id"/>
+                            <field name="company_id"/>
+                            <field name="move_id"/>
+                            <field name="move_line_id"/>
+                            <field name="partner_id"/>
+                            <field name="product_id"/>
+                            <field name="sale_order_id"/>
+                            <field name="sale_line_id"/>
+                        </group>
+                        <group>
+                            <field name="contract_id"/>
+                            <field name="version_id"/>
+                            <field name="version_line_id"/>
+                            <field name="pricing_date"/>
+                            <field name="invoice_date"/>
+                            <field name="knowledge_cutoff"/>
+                            <field name="comparison_currency_id"/>
+                            <field name="comparison_uom_id"/>
+                            <field name="eligible_quantity_exact"/>
+                        </group>
+                    </group>
+                    <group string="Calculation">
+                        <field name="approved_pre_concession_exact"/>
+                        <field name="approved_adjusted_exact"/>
+                        <field name="actual_unit_exact"/>
+                        <field name="gross_difference_exact"/>
+                        <field name="authorized_concession_exact"/>
+                        <field name="raw_difference_exact"/>
+                        <field name="potential_exposure_exact"/>
+                        <field name="contributing_causes"/>
+                        <field name="review_reason"/>
+                        <field name="credit_treatment"/>
+                        <field name="calculation_revision"/>
+                        <field name="engine_version"/>
+                    </group>
+                    <group string="Evidence">
+                        <field name="calculation_trace"/>
+                        <field name="evidence_snapshot"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_invoice_audit_result_search" model="ir.ui.view">
+        <field name="name">cpla.invoice.audit.result.search</field>
+        <field name="model">cpla.invoice.audit.result</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="version_id"/>
+                <field name="result_classification"/>
+                <filter name="filter_review" string="Review required" domain="[('result_classification', 'in', ('CONTRACT_COVERAGE_EXCEPTION', 'CONTRACT_CONFLICT_REVIEW_REQUIRED', 'MISSING_PRICING_EVIDENCE', 'FX_OR_TAX_REVIEW_REQUIRED', 'SOURCE_ALLOCATION_REVIEW_REQUIRED', 'REFUND_REASSESSMENT_REQUIRED', 'UNSUPPORTED_TRANSACTION', 'TECHNICAL_AUDIT_FAILURE'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cpla_invoice_audit_result" model="ir.actions.act_window">
+        <field name="name">Audit Results</field>
+        <field name="res_model">cpla.invoice.audit.result</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_cpla_invoice_audit_exception" model="ir.actions.act_window">
+        <field name="name">Audit Exceptions</field>
+        <field name="res_model">cpla.invoice.audit.result</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('result_classification', 'in', ('CONTRACT_COVERAGE_EXCEPTION', 'CONTRACT_CONFLICT_REVIEW_REQUIRED', 'MISSING_PRICING_EVIDENCE', 'FX_OR_TAX_REVIEW_REQUIRED', 'SOURCE_ALLOCATION_REVIEW_REQUIRED', 'REFUND_REASSESSMENT_REQUIRED', 'UNSUPPORTED_TRANSACTION', 'TECHNICAL_AUDIT_FAILURE'))]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="view_cpla_leakage_finding_list" model="ir.ui.view">
+        <field name="name">cpla.leakage.finding.list</field>
+        <field name="model">cpla.leakage.finding</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_prepare_group" type="object" string="Group Findings"
+                            groups="contract_price_leakage_auditor.group_contract_manager"/>
+                </header>
+                <field name="reference"/>
+                <field name="current_case_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="move_id"/>
+                <field name="leakage_category"/>
+                <field name="potential_leakage_exact"/>
+                <field name="currency_id"/>
+                <field name="revision_verification"/>
+                <field name="finding_status"/>
+                <field name="is_current"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_finding_form" model="ir.ui.view">
+        <field name="name">cpla.leakage.finding.form</field>
+        <field name="model">cpla.leakage.finding</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_view_evidence" type="object" string="View Calculation Evidence"/>
+                    <button name="action_open_investigation_case" type="object" string="Open Investigation Case"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="current_case_id"/>
+                    <button name="action_view_investigation_case" type="object" string="View Investigation Case"
+                            invisible="not current_case_id"/>
+                    <button name="action_open_reassessment_wizard" type="object" string="Request Reassessment"
+                            groups="contract_price_leakage_auditor.group_contract_manager"/>
+                    <field name="finding_status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        This amount is potential leakage. It is not finance-validated, billed, or collected.
+                        If source review is pending, this is the last accepted result. It is not a fresh verification.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="move_id"/>
+                            <field name="move_line_id"/>
+                            <field name="allocation_id"/>
+                            <field name="partner_id"/>
+                            <field name="product_id"/>
+                            <field name="run_id"/>
+                        </group>
+                        <group>
+                            <field name="leakage_category"/>
+                            <field name="contributing_causes"/>
+                            <field name="version_id"/>
+                            <field name="approved_adjusted_exact"/>
+                            <field name="actual_unit_exact"/>
+                            <field name="eligible_quantity_exact"/>
+                            <field name="currency_id"/>
+                            <field name="potential_leakage_exact"/>
+                            <field name="revision_verification"/>
+                            <field name="is_current"/>
+                            <field name="current_case_id"/>
+                            <field name="calculation_revision"/>
+                        </group>
+                    </group>
+                    <group string="Calculation trace">
+                        <field name="review_reason"/>
+                        <field name="knowledge_cutoff"/>
+                        <field name="first_detected_at"/>
+                        <field name="last_evaluated_at"/>
+                        <field name="calculation_trace"/>
+                        <field name="evidence_snapshot"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_finding_search" model="ir.ui.view">
+        <field name="name">cpla.leakage.finding.search</field>
+        <field name="model">cpla.leakage.finding</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <filter name="filter_current" string="Current" domain="[('is_current', '=', True)]"/>
+                <filter name="filter_potential" string="Potential" domain="[('finding_status', '=', 'potential'), ('is_current', '=', True)]"/>
+                <filter name="filter_review" string="Review required" domain="[('finding_status', '=', 'review_required'), ('is_current', '=', True)]"/>
+                <filter name="filter_source_review" string="Source review pending" domain="[('revision_verification', 'in', ('source_changed_review_pending', 'reassessment_proposed', 'current_result_uncertain'))]"/>
+                <filter name="filter_accepted_revision" string="Accepted reassessment" domain="[('revision_verification', '=', 'reassessment_accepted')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cpla_leakage_finding" model="ir.actions.act_window">
+        <field name="name">Potential Leakage Findings</field>
+        <field name="res_model">cpla.leakage.finding</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_current': 1, 'create': False}</field>
+        <field name="help" type="html">
+            <p>Detector findings only. Potential leakage is not finance-validated leakage, billed recovery, or collected cash.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_cpla_audits"
+              name="Audits"
+              parent="menu_cpla_root"
+              sequence="25"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"/>
+    <menuitem id="menu_cpla_audit_runs"
+              name="Invoice Audit Runs"
+              parent="menu_cpla_audits"
+              action="action_cpla_invoice_audit_run"
+              sequence="10"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"/>
+    <menuitem id="menu_cpla_audit_results"
+              name="Audit Results"
+              parent="menu_cpla_audits"
+              action="action_cpla_invoice_audit_result"
+              sequence="20"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"/>
+    <menuitem id="menu_cpla_leakage_findings"
+              name="Potential Leakage Findings"
+              parent="menu_cpla_audits"
+              action="action_cpla_leakage_finding"
+              sequence="30"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"/>
+    <menuitem id="menu_cpla_audit_exceptions"
+              name="Audit Exceptions"
+              parent="menu_cpla_audits"
+              action="action_cpla_invoice_audit_exception"
+              sequence="40"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"/>
+
+    <record id="view_account_move_cpla_audit" model="ir.ui.view">
+        <field name="name">account.move.cpla.audit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_cpla_open_audit_results"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-balance-scale"
+                        groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor">
+                    <field name="cpla_audit_result_count" widget="statinfo" string="Invoice Audit"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

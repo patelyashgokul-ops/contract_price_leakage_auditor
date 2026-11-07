@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_leakage_reassessment_company_rule" model="ir.rule">
+        <field name="name">Leakage reassessment: active companies only</field>
+        <field name="model_id" ref="model_cpla_leakage_reassessment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_leakage_reassessment_event_company_rule" model="ir.rule">
+        <field name="name">Leakage reassessment event: active companies only</field>
+        <field name="model_id" ref="model_cpla_leakage_reassessment_event"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_leakage_reassessment_wizard_company_rule" model="ir.rule">
+        <field name="name">Leakage reassessment wizard: active companies only</field>
+        <field name="model_id" ref="model_cpla_leakage_reassessment_wizard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

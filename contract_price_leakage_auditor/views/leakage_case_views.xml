@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_leakage_case_list" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.list</field>
+        <field name="model">cpla.leakage.case</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="primary_category"/>
+                <field name="current_potential_exposure_exact"/>
+                <field name="exposure_currency_id"/>
+                <field name="priority"/>
+                <field name="owner_id"/>
+                <field name="state"/>
+                <field name="opened_at"/>
+                <field name="target_review_date"/>
+                <field name="evidence_status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_case_form" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.form</field>
+        <field name="model">cpla.leakage.case</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button name="action_open_assign_wizard" type="object" string="Assign" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'new'"/>
+                    <button name="action_start" type="object" string="Start Investigation" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state not in ('assigned', 'returned_for_rework')"/>
+                    <button name="action_open_evidence_pending_wizard" type="object" string="Evidence Pending"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'under_investigation'"/>
+                    <button name="action_resume_investigation" type="object" string="Resume Investigation"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'evidence_pending'"/>
+                    <button name="action_submit_for_finance" type="object" string="Submit for Finance Review" class="btn-primary"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'under_investigation'"/>
+                    <button name="action_open_return_wizard" type="object" string="Return for Rework"
+                            groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager"
+                            invisible="state != 'ready_for_finance_review'"/>
+                    <button name="action_open_priority_wizard" type="object" string="Set Priority"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_severity_wizard" type="object" string="Set Severity"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_root_cause_wizard" type="object" string="Record Root Cause"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_outcome_wizard" type="object" string="Record Outcome"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_activity_wizard" type="object" string="Schedule Follow-up"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_refresh_source_status" type="object" string="Refresh Source Status"
+                            invisible="state == 'closed_with_reason'"/>
+                    <button name="action_open_accept_wizard" type="object" string="Accept Source Revision"
+                            groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager"
+                            invisible="not source_reassessment_required or state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_merge_wizard" type="object" string="Merge"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_split_wizard" type="object" string="Split"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_close_wizard" type="object" string="Close"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                    <button name="action_open_reopen_wizard" type="object" string="Reopen"
+                            groups="contract_price_leakage_auditor.group_contract_manager"
+                            invisible="state != 'closed_with_reason'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,assigned,under_investigation,evidence_pending,ready_for_finance_review,returned_for_rework,closed_with_reason"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_findings" type="object" class="oe_stat_button" icon="fa-search">
+                            <field name="finding_count" widget="statinfo" string="Findings"/>
+                        </button>
+                        <button name="action_view_results" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="result_count" widget="statinfo" string="Audit Results"/>
+                        </button>
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                        <button name="action_view_versions" type="object" class="oe_stat_button" icon="fa-book">
+                            <field name="version_count" widget="statinfo" string="Contract Versions"/>
+                        </button>
+                        <button name="action_view_orders" type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                            <field name="order_count" widget="statinfo" string="Sales Orders"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        Potential exposure is not a finance-validated amount, billed recovery, or collected cash. Submitting this case is not approval. Closing it is not recovery.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                        <h2><field name="title" readonly="state in ('ready_for_finance_review', 'closed_with_reason')"/></h2>
+                    </div>
+                    <group>
+                        <group string="Case">
+                            <field name="company_id"/>
+                            <field name="partner_id"/>
+                            <field name="case_type"/>
+                            <field name="primary_category"/>
+                            <field name="exception_queue"/>
+                            <field name="owner_id"/>
+                            <field name="priority"/>
+                            <field name="severity"/>
+                        </group>
+                        <group string="Exposure">
+                            <field name="current_potential_exposure_exact"/>
+                            <field name="exposure_currency_id"/>
+                            <field name="exposure_comparable"/>
+                            <field name="exposure_unknown_count"/>
+                            <field name="reviewed_exposure_exact"/>
+                            <field name="source_reassessment_required"/>
+                            <field name="finance_package_stale"/>
+                            <field name="reinvestigation_required"/>
+                            <field name="evidence_status"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Overview" name="overview">
+                            <group>
+                                <group>
+                                    <field name="opened_at"/>
+                                    <field name="first_detected_at"/>
+                                    <field name="assigned_at"/>
+                                    <field name="target_review_date" readonly="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                                    <field name="age_calendar_days"/>
+                                    <field name="is_overdue"/>
+                                </group>
+                                <group>
+                                    <field name="last_activity_at"/>
+                                    <field name="evidence_requested_at"/>
+                                    <field name="grouping_basis"/>
+                                    <field name="case_revision"/>
+                                    <field name="escalation_policy_reference" readonly="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                                    <field name="participant_ids" widget="many2many_tags"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Linked Findings" name="findings">
+                            <field name="membership_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="finding_id"/>
+                                    <field name="is_current"/>
+                                    <field name="reviewed_exposure_exact"/>
+                                    <field name="reviewed_revision"/>
+                                    <field name="reviewed_identity"/>
+                                    <field name="linked_at"/>
+                                    <field name="removed_at"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Investigation" name="investigation">
+                            <group>
+                                <field name="root_cause"/>
+                                <field name="root_cause_explanation"/>
+                                <field name="investigation_outcome"/>
+                                <field name="investigation_summary" readonly="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                                <field name="outstanding_qualification" readonly="state in ('ready_for_finance_review', 'closed_with_reason')"/>
+                                <field name="priority_reason"/>
+                                <field name="severity_reason"/>
+                            </group>
+                            <field name="checklist_ids">
+                                <list create="false" delete="false" editable="bottom">
+                                    <field name="sequence" readonly="1"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="required_for_submission" readonly="1"/>
+                                    <field name="answer"/>
+                                    <field name="note"/>
+                                    <field name="answered_by_id" readonly="1"/>
+                                    <field name="answered_at" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documents" name="documents">
+                            <field name="evidence_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="evidence_kind"/>
+                                    <field name="source_model"/>
+                                    <field name="source_res_id"/>
+                                    <field name="status"/>
+                                    <field name="status_note"/>
+                                    <field name="reviewed_by_id"/>
+                                    <field name="reviewed_at"/>
+                                    <button name="action_verify" type="object" string="Verify" icon="fa-check"/>
+                                    <button name="action_request" type="object" string="Request" icon="fa-question"/>
+                                    <button name="action_reject" type="object" string="Reject" icon="fa-times"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="History" name="history">
+                            <field name="event_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="occurred_at"/>
+                                    <field name="event_type"/>
+                                    <field name="actor_id"/>
+                                    <field name="previous_value"/>
+                                    <field name="new_value"/>
+                                    <field name="reason"/>
+                                    <field name="case_revision"/>
+                                    <field name="source_model"/>
+                                    <field name="source_res_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Finance Handoff" name="finance">
+                            <group>
+                                <field name="finance_submitted_at"/>
+                                <field name="submitted_by_id"/>
+                                <field name="returned_at"/>
+                                <field name="returned_by_id"/>
+                                <field name="return_reason"/>
+                                <field name="return_required_action"/>
+                                <field name="closed_at"/>
+                                <field name="closed_by_id"/>
+                                <field name="closure_reason"/>
+                                <field name="closure_note"/>
+                                <field name="reopened_at"/>
+                                <field name="superseded_by_case_id"/>
+                            </group>
+                            <field name="submission_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="submitted_at"/>
+                                    <field name="submitted_by_id"/>
+                                    <field name="case_revision"/>
+                                    <field name="potential_exposure_exact"/>
+                                    <field name="currency_id"/>
+                                    <field name="root_cause"/>
+                                    <field name="evidence_status"/>
+                                    <field name="returned_at"/>
+                                    <field name="return_reason"/>
+                                    <field name="required_action"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_case_kanban" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.kanban</field>
+        <field name="model">cpla.leakage.case</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false" group_create="false" records_draggable="false">
+                <field name="state"/>
+                <field name="priority"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="reference"/>
+                        <field name="partner_id"/>
+                        <field name="current_potential_exposure_exact"/>
+                        <field name="exposure_currency_id"/>
+                        <field name="priority"/>
+                        <footer>
+                            <field name="owner_id" widget="many2one_avatar_user"/>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_case_search" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.search</field>
+        <field name="model">cpla.leakage.case</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="reference"/>
+                <field name="partner_id"/>
+                <field name="company_id"/>
+                <field name="owner_id"/>
+                <field name="primary_category"/>
+                <filter name="filter_my" string="My Cases" domain="[('owner_id', '=', uid)]"/>
+                <filter name="filter_unassigned" string="Unassigned" domain="[('owner_id', '=', False), ('state', '!=', 'closed_with_reason')]"/>
+                <filter name="filter_high" string="High Priority" domain="[('priority', 'in', ('high', 'critical'))]"/>
+                <filter name="filter_evidence" string="Evidence Pending" domain="[('state', '=', 'evidence_pending')]"/>
+                <filter name="filter_finance" string="Ready for Finance" domain="[('state', '=', 'ready_for_finance_review')]"/>
+                <filter name="filter_returned" string="Returned for Rework" domain="[('state', '=', 'returned_for_rework')]"/>
+                <filter name="filter_overdue" string="Overdue" domain="[('is_overdue', '=', True)]"/>
+                <filter name="filter_exception" string="Exception Queue" domain="[('exception_queue', '!=', False)]"/>
+                <filter name="filter_reassessment" string="Source Reassessment" domain="[('source_reassessment_required', '=', True)]"/>
+                <group>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'primary_category'}"/>
+                    <filter name="group_queue" string="Exception Queue" context="{'group_by': 'exception_queue'}"/>
+                    <filter name="group_owner" string="Investigator" context="{'group_by': 'owner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_case_wizard_form" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.wizard.form</field>
+        <field name="model">cpla.leakage.case.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="operation" readonly="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="case_id" invisible="1"/>
+                    <field name="evidence_id" invisible="1"/>
+                    <field name="user_id" invisible="operation not in ('assign', 'activity')"/>
+                    <field name="priority" invisible="operation != 'priority'"/>
+                    <field name="severity" invisible="operation != 'severity'"/>
+                    <field name="root_cause" invisible="operation != 'root_cause'"/>
+                    <field name="outcome" invisible="operation != 'outcome'"/>
+                    <field name="closure_reason" invisible="operation != 'close'"/>
+                    <field name="source_case_id" invisible="operation != 'merge'"/>
+                    <field name="finding_ids" widget="many2many_tags" invisible="operation not in ('split', 'group_findings')"/>
+                    <field name="grouping_basis" invisible="operation != 'group_findings'"/>
+                    <field name="date_deadline" invisible="operation != 'activity'"/>
+                    <field name="summary" invisible="operation != 'activity'"/>
+                    <field name="required_action" invisible="operation != 'return'"/>
+                    <field name="reason" invisible="operation == 'activity'"/>
+                    <field name="note" invisible="operation != 'activity'"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Apply" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_case_event_list" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.event.list</field>
+        <field name="model">cpla.leakage.case.event</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="occurred_at"/>
+                <field name="case_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="event_type"/>
+                <field name="actor_id"/>
+                <field name="previous_value"/>
+                <field name="new_value"/>
+                <field name="reason"/>
+                <field name="case_revision"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_leakage_case_event_search" model="ir.ui.view">
+        <field name="name">cpla.leakage.case.event.search</field>
+        <field name="model">cpla.leakage.case.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="case_id"/>
+                <field name="event_type"/>
+                <field name="actor_id"/>
+                <filter name="filter_finance" string="Finance Handoff" domain="[('event_type', 'in', ('submitted_to_finance', 'returned_for_rework'))]"/>
+                <group>
+                    <filter name="group_type" string="Event" context="{'group_by': 'event_type'}"/>
+                    <filter name="group_case" string="Case" context="{'group_by': 'case_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cpla_leakage_case" model="ir.actions.act_window">
+        <field name="name">Leakage Cases</field>
+        <field name="res_model">cpla.leakage.case</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p>Investigation cases organize current findings. Potential exposure is not finance-validated leakage, billed recovery, or collected cash.</p>
+        </field>
+    </record>
+
+    <record id="action_cpla_leakage_case_my" model="ir.actions.act_window">
+        <field name="name">My Cases</field>
+        <field name="res_model">cpla.leakage.case</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('owner_id', '=', uid)]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_cpla_leakage_case_unassigned" model="ir.actions.act_window">
+        <field name="name">Unassigned Cases</field>
+        <field name="res_model">cpla.leakage.case</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('owner_id', '=', False), ('state', '!=', 'closed_with_reason')]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_cpla_leakage_case_evidence" model="ir.actions.act_window">
+        <field name="name">Evidence Pending</field>
+        <field name="res_model">cpla.leakage.case</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', '=', 'evidence_pending')]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_cpla_leakage_case_finance" model="ir.actions.act_window">
+        <field name="name">Ready for Finance Review</field>
+        <field name="res_model">cpla.leakage.case</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', '=', 'ready_for_finance_review')]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="action_cpla_leakage_case_exception" model="ir.actions.act_window">
+        <field name="name">Exception Queue</field>
+        <field name="res_model">cpla.leakage.case</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('exception_queue', '!=', False)]</field>
+        <field name="context">{'create': False, 'search_default_group_queue': 1}</field>
+    </record>
+
+    <record id="action_cpla_leakage_case_history" model="ir.actions.act_window">
+        <field name="name">Case History</field>
+        <field name="res_model">cpla.leakage.case.event</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem id="menu_cpla_investigation"
+              name="Investigation"
+              parent="menu_cpla_root"
+              sequence="30"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_leakage_cases"
+              name="Leakage Cases"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case"
+              sequence="10"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_my_cases"
+              name="My Cases"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case_my"
+              sequence="20"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_unassigned_cases"
+              name="Unassigned Cases"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case_unassigned"
+              sequence="30"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_evidence_pending"
+              name="Evidence Pending"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case_evidence"
+              sequence="40"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_ready_finance"
+              name="Ready for Finance Review"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case_finance"
+              sequence="50"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_exception_queue"
+              name="Exception Queue"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case_exception"
+              sequence="60"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_case_history"
+              name="Case History"
+              parent="menu_cpla_investigation"
+              action="action_cpla_leakage_case_history"
+              sequence="70"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

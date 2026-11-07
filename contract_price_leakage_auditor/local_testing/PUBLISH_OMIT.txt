@@ -1,0 +1,7 @@
+This directory is local test runtime for contract_price_leakage_auditor.
+Do not put it in the published module zip.
+free_space.py deletes the disposable databases named in disposable_databases.txt,
+their Odoo filestore folders, and this addon's __pycache__ directories.
+It never drops a database whose name does not start with cpla_.
+Run: python local_testing/free_space.py
+Publish cleanup: python local_testing/free_space.py --publish

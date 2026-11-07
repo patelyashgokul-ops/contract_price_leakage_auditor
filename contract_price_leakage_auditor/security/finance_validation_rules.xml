@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_finance_validation_policy_company_rule" model="ir.rule">
+        <field name="name">Finance validation policy: active companies only</field>
+        <field name="model_id" ref="model_cpla_finance_validation_policy"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_finance_validation_policy_level_company_rule" model="ir.rule">
+        <field name="name">Finance validation policy level: active companies only</field>
+        <field name="model_id" ref="model_cpla_finance_validation_policy_level"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_finance_validation_company_rule" model="ir.rule">
+        <field name="name">Finance validation: active companies only</field>
+        <field name="model_id" ref="model_cpla_finance_validation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_finance_validation_line_company_rule" model="ir.rule">
+        <field name="name">Finance validation line: active companies only</field>
+        <field name="model_id" ref="model_cpla_finance_validation_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_finance_validation_approval_company_rule" model="ir.rule">
+        <field name="name">Finance validation approval: active companies only</field>
+        <field name="model_id" ref="model_cpla_finance_validation_approval"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_finance_validation_wizard_company_rule" model="ir.rule">
+        <field name="name">Finance validation wizard: active companies only</field>
+        <field name="model_id" ref="model_cpla_finance_validation_wizard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

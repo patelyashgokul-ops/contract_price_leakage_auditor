@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_company_policy_list" model="ir.ui.view">
+        <field name="name">cpla.company.policy.list</field>
+        <field name="model">cpla.company.policy</field>
+        <field name="arch" type="xml">
+            <list string="Company policies" delete="false">
+                <field name="company_id"/>
+                <field name="version"/>
+                <field name="state"/>
+                <field name="is_current"/>
+                <field name="pricing_date_policy"/>
+                <field name="operationally_approved"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_company_policy_form" model="ir.ui.view">
+        <field name="name">cpla.company.policy.form</field>
+        <field name="model">cpla.company.policy</field>
+        <field name="arch" type="xml">
+            <form string="Company policy" duplicate="false" delete="false">
+                <header>
+                    <button name="action_submit_for_review" type="object" string="Submit for business review" class="btn-secondary" groups="contract_price_leakage_auditor.group_app_admin" invisible="not is_current"/>
+                    <button name="action_new_revision" type="object" string="New revision" groups="contract_price_leakage_auditor.group_app_admin" invisible="not is_current"/>
+                    <button name="action_request_activation" type="object" string="Check activation" groups="contract_price_leakage_auditor.group_finance_manager" invisible="not is_current"/>
+                    <field name="state" widget="statusbar" readonly="1" statusbar_visible="not_configured,draft,review_required,ready_for_business_review"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        This policy is not operationally approved. Open business decisions block activation. A complete form is not an approval.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Company">
+                            <field name="company_id" readonly="id"/>
+                            <field name="company_currency_id"/>
+                            <field name="version"/>
+                            <field name="is_current"/>
+                            <field name="operationally_approved"/>
+                        </group>
+                        <group string="Revision">
+                            <field name="effective_from" readonly="not is_current"/>
+                            <field name="effective_to" readonly="not is_current"/>
+                            <field name="change_reason" readonly="not is_current"/>
+                            <field name="requested_by"/>
+                            <field name="requested_on"/>
+                            <field name="approved_by"/>
+                            <field name="supersedes_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Contract pricing policy" name="pricing">
+                            <group>
+                                <field name="pricing_date_policy" readonly="not is_current"/>
+                                <field name="contract_precedence_policy" readonly="not is_current"/>
+                                <field name="customer_coverage_policy" readonly="not is_current"/>
+                                <field name="conflict_behavior"/>
+                                <field name="contract_priority_rule"/>
+                            </group>
+                        </page>
+                        <page string="Quantity and UoM" name="quantity">
+                            <group>
+                                <field name="quantity_basis_policy" readonly="not is_current"/>
+                                <field name="missing_evidence_policy" readonly="not is_current"/>
+                                <field name="packaging_rule"/>
+                            </group>
+                        </page>
+                        <page string="Currency and FX" name="fx" groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor,contract_price_leakage_auditor.group_app_admin">
+                            <group>
+                                <field name="fx_basis_policy" readonly="not is_current"/>
+                            </group>
+                        </page>
+                        <page string="Tax comparison" name="tax" groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor,contract_price_leakage_auditor.group_app_admin">
+                            <group>
+                                <field name="tax_comparison_policy" readonly="not is_current"/>
+                            </group>
+                        </page>
+                        <page string="Financial precision" name="precision" groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor,contract_price_leakage_auditor.group_app_admin">
+                            <group>
+                                <field name="monetary_precision_policy" readonly="not is_current"/>
+                                <field name="tolerance_policy" readonly="not is_current"/>
+                            </group>
+                        </page>
+                        <page string="Approval policy" name="approval" groups="contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor,contract_price_leakage_auditor.group_app_admin">
+                            <group>
+                                <field name="discount_approval_policy" readonly="not is_current"/>
+                            </group>
+                        </page>
+                        <page string="Quotation compliance" name="quotation_compliance">
+                            <group>
+                                <field name="quotation_compliance_mode" readonly="not is_current"/>
+                            </group>
+                        </page>
+                        <page string="Configuration readiness" name="readiness">
+                            <group>
+                                <field name="readiness_display"/>
+                                <field name="open_decision_text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_company_policy_search" model="ir.ui.view">
+        <field name="name">cpla.company.policy.search</field>
+        <field name="model">cpla.company.policy</field>
+        <field name="arch" type="xml">
+            <search string="Company policies">
+                <field name="company_id"/>
+                <field name="state"/>
+                <filter name="filter_current" string="Current revision" domain="[('is_current', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cpla_company_policy" model="ir.actions.act_window">
+        <field name="name">Company configuration</field>
+        <field name="res_model">cpla.company.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_current': 1}</field>
+        <field name="help" type="html">
+            <p>Create one current policy revision for a company. Draft choices are not approvals.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_cpla_root"
+              name="Contract Price Leakage"
+              sequence="45"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor,contract_price_leakage_auditor.group_app_admin"/>
+    <menuitem id="menu_cpla_configuration"
+              name="Configuration"
+              parent="menu_cpla_root"
+              action="action_cpla_company_policy"
+              sequence="10"
+              groups="contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor,contract_price_leakage_auditor.group_app_admin"/>
+</odoo>

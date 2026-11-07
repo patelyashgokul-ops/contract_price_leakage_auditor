@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_cpla_recovery_policy" model="ir.sequence">
+        <field name="name">Commercial Recovery Policy</field>
+        <field name="code">cpla.recovery.policy</field>
+        <field name="prefix">CPL-RCP/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_cpla_recovery_request" model="ir.sequence">
+        <field name="name">Commercial Recovery Request</field>
+        <field name="code">cpla.recovery.request</field>
+        <field name="prefix">CPL-REC/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_cpla_recovery_waiver" model="ir.sequence">
+        <field name="name">Commercial Waiver</field>
+        <field name="code">cpla.recovery.waiver</field>
+        <field name="prefix">CPL-WAV/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_cpla_recovery_dispute" model="ir.sequence">
+        <field name="name">Customer Dispute</field>
+        <field name="code">cpla.recovery.dispute</field>
+        <field name="prefix">CPL-DSP/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_cpla_recovery_settlement" model="ir.sequence">
+        <field name="name">Negotiated Settlement</field>
+        <field name="code">cpla.recovery.settlement</field>
+        <field name="prefix">CPL-SET/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

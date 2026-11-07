@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+local_testing/*
+!local_testing/free_space.py
+!local_testing/disposable_databases.txt
+!local_testing/PUBLISH_OMIT.txt

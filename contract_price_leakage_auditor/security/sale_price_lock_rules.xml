@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_sale_price_lock_company_rule" model="ir.rule">
+        <field name="name">Confirmed price lock: active companies only</field>
+        <field name="model_id" ref="model_cpla_sale_price_lock"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_quotation_override_request_company_rule" model="ir.rule">
+        <field name="name">Quotation override request: active companies only</field>
+        <field name="model_id" ref="model_cpla_quotation_override_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

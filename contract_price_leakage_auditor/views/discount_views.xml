@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cpla_customer_contract_version_discount" model="ir.ui.view">
+        <field name="name">cpla.customer.contract.version.discount</field>
+        <field name="model">cpla.customer.contract.version</field>
+        <field name="inherit_id" ref="view_cpla_customer_contract_version_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='financial_clause']" position="after">
+                <page string="Authorized Discounts" name="authorized_discounts">
+                    <div class="alert alert-warning" role="alert">
+                        These concessions are authority only after this version is approved.
+                        A company discount candidate is not applied. An empty approval limit
+                        does not grant unlimited approval. This page does not audit invoices
+                        and it does not create a leakage finding.
+                    </div>
+                    <group>
+                        <group string="Combination">
+                            <field name="discount_stacking_policy" readonly="state != 'draft'"/>
+                            <field name="tier_discount_policy" readonly="state != 'draft'"/>
+                            <field name="retroactive_discount_authority" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Discretionary Approval Limit">
+                            <field name="authority_limit_basis" readonly="state != 'draft'"/>
+                            <field name="authority_max_percent_exact" readonly="state != 'draft'"/>
+                            <field name="authority_max_unit_reduction_exact" readonly="state != 'draft'"/>
+                            <field name="authority_max_exposure_exact" readonly="state != 'draft'"/>
+                            <field name="authority_exposure_currency_id" readonly="state != 'draft'"/>
+                            <field name="authority_exposure_quantity_exact" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <field name="concession_ids" readonly="state != 'draft'">
+                        <list>
+                            <field name="sequence"/>
+                            <field name="concession_type"/>
+                            <field name="percent_exact"/>
+                            <field name="amount_exact"/>
+                            <field name="currency_id"/>
+                            <field name="uom_id"/>
+                            <field name="customer_scope"/>
+                            <field name="product_scope"/>
+                            <field name="exclusive"/>
+                            <field name="effective_from"/>
+                            <field name="effective_to"/>
+                            <field name="revocation_state"/>
+                            <field name="company_id" column_invisible="1"/>
+                        </list>
+                        <form>
+                            <group>
+                                <group>
+                                    <field name="concession_type"/>
+                                    <field name="percent_exact"/>
+                                    <field name="amount_exact"/>
+                                    <field name="currency_id"/>
+                                    <field name="uom_id"/>
+                                    <field name="sequence"/>
+                                    <field name="exclusive"/>
+                                    <field name="precedence_rank"/>
+                                </group>
+                                <group>
+                                    <field name="customer_scope"/>
+                                    <field name="partner_id"/>
+                                    <field name="product_scope"/>
+                                    <field name="version_line_id"/>
+                                    <field name="product_id"/>
+                                    <field name="product_tmpl_id"/>
+                                    <field name="effective_from"/>
+                                    <field name="effective_to"/>
+                                    <field name="quantity_min_exact"/>
+                                    <field name="quantity_max_exact"/>
+                                    <field name="quantity_uom_id"/>
+                                    <field name="evidence_reference"/>
+                                    <field name="unsupported_reason"/>
+                                    <field name="company_id" invisible="1"/>
+                                </group>
+                            </group>
+                            <group string="Revocation Evidence">
+                                <field name="revocation_state"/>
+                                <field name="revocation_effective_on"/>
+                                <field name="revoked_at"/>
+                                <field name="revoked_by_id"/>
+                                <field name="revocation_reason"/>
+                                <field name="revocation_retroactive"/>
+                            </group>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_cpla_discount_approval_list" model="ir.ui.view">
+        <field name="name">cpla.discount.approval.list</field>
+        <field name="model">cpla.discount.approval</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="request_kind"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="version_id"/>
+                <field name="state" widget="badge"/>
+                <field name="requester_id"/>
+                <field name="approver_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_discount_approval_form" model="ir.ui.view">
+        <field name="name">cpla.discount.approval.form</field>
+        <field name="model">cpla.discount.approval</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" invisible="state != 'submitted'"
+                            groups="contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'submitted'"
+                            groups="contract_price_leakage_auditor.group_finance_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel Draft"
+                            invisible="state not in ('draft', 'submitted')"/>
+                    <button name="action_view_history" type="object" string="View Approved History"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,rejected,cancelled"/>
+                </header>
+                <div class="alert alert-warning" role="alert">
+                    Approval does not change a sales order or a posted invoice.
+                    An approved override applies only to the named order line and quantity.
+                    It is not a leakage finding and it is not recovered cash.
+                </div>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="request_kind" readonly="state != 'draft'"/>
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="product_id" readonly="state != 'draft'"/>
+                            <field name="version_id" readonly="state != 'draft'"/>
+                            <field name="currency_id" readonly="state != 'draft'"/>
+                            <field name="uom_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="concession_type" readonly="state != 'draft'"/>
+                            <field name="percent_exact" readonly="state != 'draft'"/>
+                            <field name="amount_exact" readonly="state != 'draft'"/>
+                            <field name="proposed_price_exact" readonly="state != 'draft'"/>
+                            <field name="baseline_unit_price_exact"/>
+                            <field name="quantity_exact" readonly="state != 'draft'"/>
+                            <field name="exposure_exact"/>
+                            <field name="effective_from" readonly="state != 'draft'"/>
+                            <field name="effective_to" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="sale_reference" readonly="state != 'draft'"/>
+                            <field name="sale_line_reference" readonly="state != 'draft'"/>
+                            <field name="exclusive" readonly="state != 'draft'"/>
+                            <field name="sequence" readonly="state != 'draft'"/>
+                            <field name="reason" readonly="state != 'draft'"/>
+                            <field name="evidence_reference" readonly="state != 'draft'"/>
+                            <field name="rejection_reason" readonly="state != 'submitted'"/>
+                        </group>
+                        <group>
+                            <field name="requester_id"/>
+                            <field name="submitted_by_id"/>
+                            <field name="approver_id"/>
+                            <field name="approved_at"/>
+                            <field name="retroactive_granted"/>
+                            <field name="revocation_state"/>
+                            <field name="revocation_effective_on"/>
+                            <field name="revocation_reason"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cpla_discount_concession_list" model="ir.ui.view">
+        <field name="name">cpla.discount.concession.list</field>
+        <field name="model">cpla.discount.concession</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="version_id"/>
+                <field name="concession_type"/>
+                <field name="percent_exact"/>
+                <field name="amount_exact"/>
+                <field name="exclusive"/>
+                <field name="effective_from"/>
+                <field name="effective_to"/>
+                <field name="revocation_state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_discount_event_list" model="ir.ui.view">
+        <field name="name">cpla.discount.event.list</field>
+        <field name="model">cpla.discount.event</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="occurred_at"/>
+                <field name="event_type"/>
+                <field name="actor_id"/>
+                <field name="note"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cpla_pricing_applicability_discount" model="ir.ui.view">
+        <field name="name">cpla.pricing.applicability.check.discount</field>
+        <field name="model">cpla.pricing.applicability.check</field>
+        <field name="inherit_id" ref="view_cpla_pricing_applicability_check_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='financial_explanation']" position="after">
+                <field name="discount_status"/>
+                <field name="discount_reason"/>
+                <field name="discount_applied"/>
+                <field name="price_exception_indicator"/>
+                <field name="approved_adjusted_unit_price_exact"
+                       invisible="discount_status not in ('AUTHORIZED_PRICE_RESOLVED', 'NO_ADDITIONAL_DISCOUNT', 'SPECIAL_PRICE_APPLICABLE', 'APPROVED_OVERRIDE_APPLICABLE')"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_cpla_discount_approval" model="ir.actions.act_window">
+        <field name="name">Discount Approvals</field>
+        <field name="res_model">cpla.discount.approval</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('request_kind', '=', 'additional_concession')]</field>
+    </record>
+    <record id="action_cpla_price_override" model="ir.actions.act_window">
+        <field name="name">Price Overrides</field>
+        <field name="res_model">cpla.discount.approval</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('request_kind', '=', 'transaction_override')]</field>
+    </record>
+    <record id="action_cpla_discount_concession" model="ir.actions.act_window">
+        <field name="name">Approved Concessions</field>
+        <field name="res_model">cpla.discount.concession</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_cpla_discount_approvals"
+              name="Discount Approvals"
+              parent="menu_cpla_contracts"
+              action="action_cpla_discount_approval"
+              sequence="50"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_price_overrides"
+              name="Price Overrides"
+              parent="menu_cpla_contracts"
+              action="action_cpla_price_override"
+              sequence="60"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+    <menuitem id="menu_cpla_discount_concessions"
+              name="Approved Concessions"
+              parent="menu_cpla_contracts"
+              action="action_cpla_discount_concession"
+              sequence="70"
+              groups="contract_price_leakage_auditor.group_contract_user,contract_price_leakage_auditor.group_contract_manager,contract_price_leakage_auditor.group_finance_reviewer,contract_price_leakage_auditor.group_finance_manager,contract_price_leakage_auditor.group_internal_auditor"/>
+</odoo>

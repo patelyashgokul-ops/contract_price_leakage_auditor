@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_recovery_policy_company_rule" model="ir.rule">
+        <field name="name">Commercial recovery policy: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_policy"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_policy_level_company_rule" model="ir.rule">
+        <field name="name">Commercial recovery policy level: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_policy_level"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_request_company_rule" model="ir.rule">
+        <field name="name">Commercial recovery request: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_request_line_company_rule" model="ir.rule">
+        <field name="name">Commercial recovery request line: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_request_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_waiver_company_rule" model="ir.rule">
+        <field name="name">Commercial waiver: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_waiver"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_dispute_company_rule" model="ir.rule">
+        <field name="name">Customer dispute: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_dispute"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_settlement_company_rule" model="ir.rule">
+        <field name="name">Negotiated settlement: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_settlement"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_event_company_rule" model="ir.rule">
+        <field name="name">Commercial recovery event: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_event"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_balance_company_rule" model="ir.rule">
+        <field name="name">Commercial allocation balance: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_balance"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="cpla_recovery_wizard_company_rule" model="ir.rule">
+        <field name="name">Commercial recovery wizard: active companies only</field>
+        <field name="model_id" ref="model_cpla_recovery_wizard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

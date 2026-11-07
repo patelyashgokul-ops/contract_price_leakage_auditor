@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_cpla_recovery_billing_policy" model="ir.sequence">
+        <field name="name">Recovery Billing Policy</field>
+        <field name="code">cpla.recovery.billing.policy</field>
+        <field name="prefix">CPL-BPO/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_cpla_recovery_billing" model="ir.sequence">
+        <field name="name">Recovery Billing</field>
+        <field name="code">cpla.recovery.billing</field>
+        <field name="prefix">CPL-BIL/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="implementation">standard</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

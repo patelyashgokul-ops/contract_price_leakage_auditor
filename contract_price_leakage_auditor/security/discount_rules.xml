@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_discount_concession_company_rule" model="ir.rule">
+        <field name="name">Discount concession: active companies only</field>
+        <field name="model_id" ref="model_cpla_discount_concession"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_discount_approval_company_rule" model="ir.rule">
+        <field name="name">Discount approval: active companies only</field>
+        <field name="model_id" ref="model_cpla_discount_approval"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_discount_event_company_rule" model="ir.rule">
+        <field name="name">Discount event: active companies only</field>
+        <field name="model_id" ref="model_cpla_discount_event"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="cpla_discount_concession_owner_rule" model="ir.rule">
+        <field name="name">Discount concession: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_discount_concession"/>
+        <field name="domain_force">[('version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_discount_approval_owner_rule" model="ir.rule">
+        <field name="name">Discount approval: contract user owns the request</field>
+        <field name="model_id" ref="model_cpla_discount_approval"/>
+        <field name="domain_force">['|', ('requester_id', '=', user.id), ('version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_discount_event_owner_rule" model="ir.rule">
+        <field name="name">Discount event: contract user owns the parent</field>
+        <field name="model_id" ref="model_cpla_discount_event"/>
+        <field name="domain_force">['|', ('approval_id.requester_id', '=', user.id), ('concession_id.version_id.contract_id.owner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="cpla_discount_concession_manager_rule" model="ir.rule">
+        <field name="name">Discount concession: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_discount_concession"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_discount_approval_manager_rule" model="ir.rule">
+        <field name="name">Discount approval: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_discount_approval"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_discount_event_manager_rule" model="ir.rule">
+        <field name="name">Discount event: contract manager company scope</field>
+        <field name="model_id" ref="model_cpla_discount_event"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_contract_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

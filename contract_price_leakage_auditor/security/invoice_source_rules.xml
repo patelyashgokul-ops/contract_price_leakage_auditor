@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cpla_invoice_source_map_company_rule" model="ir.rule">
+        <field name="name">Invoice source mapping: active companies only</field>
+        <field name="model_id" ref="model_cpla_invoice_source_map"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_invoice_source_allocation_company_rule" model="ir.rule">
+        <field name="name">Invoice source allocation: active companies only</field>
+        <field name="model_id" ref="model_cpla_invoice_source_allocation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_invoice_source_verification_company_rule" model="ir.rule">
+        <field name="name">Invoice source verification: active companies only</field>
+        <field name="model_id" ref="model_cpla_invoice_source_verification"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="cpla_invoice_source_verification_line_company_rule" model="ir.rule">
+        <field name="name">Invoice source verification line: active companies only</field>
+        <field name="model_id" ref="model_cpla_invoice_source_verification_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>
